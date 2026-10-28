@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<string>zh-Hans</string>
 	<key>CFBundleDisplayName</key>
 	<string>Weft</string>
 	<key>CFBundleExecutable</key>
@@ -12,6 +12,10 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hans</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
@@ -36,8 +40,8 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Weft reads the URL of the active browser tab to categorize your time. Nothing leaves your Mac.</string>
+	<string>Weft 需要读取当前浏览器标签页的网址，用来给你的时间分类。这些数据不会离开这台 Mac。</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Open source under the MIT license.</string>
+	<string>基于 MIT 许可证开源。</string>
 </dict>
 </plist>

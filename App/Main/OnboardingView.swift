@@ -10,38 +10,38 @@ struct OnboardingView: View {
             HStack(spacing: 12) {
                 Image(systemName: "circle.circle").font(.system(size: 40)).foregroundStyle(.tint)
                 VStack(alignment: .leading) {
-                    Text("Welcome to Weft").font(.title.bold())
-                    Text("Automatic time tracking that stays on your Mac.").foregroundStyle(.secondary)
+                    Text("欢迎使用 Weft").font(.title.bold())
+                    Text("自动记录时间，数据始终留在你的 Mac 上。").foregroundStyle(.secondary)
                 }
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                bullet("record.circle", "Records the frontmost app, window title and browser URL — no screenshots, no keystrokes.")
-                bullet("sparkles", "Unknown apps and sites are categorized by Apple's on-device model. Nothing is uploaded.")
-                bullet("scope", "Start Focus, Meeting or Break sessions from the menu bar.")
+                bullet("record.circle", "记录前台应用、窗口标题和浏览器网址——不截屏，不记录按键。")
+                bullet("sparkles", "陌生的应用和网站由 Apple 的设备端模型分类，不会上传任何内容。")
+                bullet("scope", "从菜单栏开始专注、会议或休息时段。")
             }
 
             Form {
                 PermissionRow(
-                    title: "Accessibility",
-                    detail: "Required to read window titles.",
+                    title: "辅助功能",
+                    detail: "读取窗口标题所必需。",
                     granted: model.accessibilityGranted,
                     action: { SystemProbe.requestAccessibility(); SystemSettings.openAccessibility() }
                 )
                 LabeledContent {
                     switch model.classifier.aiAvailability {
-                    case .available: Label("Available", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                    case .unavailable: Button("Open Settings") { SystemSettings.openAppleIntelligence() }
+                    case .available: Label("可用", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    case .unavailable: Button("打开设置") { SystemSettings.openAppleIntelligence() }
                     }
                 } label: {
-                    Text("Apple Intelligence")
+                    Text("Apple 智能")
                     switch model.classifier.aiAvailability {
-                    case .available: Text("Ready for on-device classification.")
-                    case .unavailable(let reason): Text("\(reason) Built-in rules still work.")
+                    case .available: Text("已就绪，可进行设备端分类。")
+                    case .unavailable(let reason): Text("\(reason)内置规则仍然可用。")
                     }
                 }
-                LabeledContent("Browsers") {
-                    Text("Each browser will ask once for permission.").foregroundStyle(.secondary)
+                LabeledContent("浏览器") {
+                    Text("每个浏览器会询问一次权限。").foregroundStyle(.secondary)
                 }
             }
             .formStyle(.grouped)
@@ -50,7 +50,7 @@ struct OnboardingView: View {
 
             HStack {
                 Spacer()
-                Button("Get Started") {
+                Button("开始使用") {
                     model.preferences.hasCompletedOnboarding = true
                     onDone()
                 }

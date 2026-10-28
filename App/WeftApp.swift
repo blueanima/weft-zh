@@ -12,6 +12,7 @@ struct WeftApp: App {
                 MenuBarView()
                     .environment(model)
                     .modelContainer(model.container)
+                    .environment(\.locale, .weftUI)
             }
         } label: {
             MenuBarLabel(model: model)
@@ -23,6 +24,7 @@ struct WeftApp: App {
                 MainView()
                     .environment(model)
                     .modelContainer(model.container)
+                    .environment(\.locale, .weftUI)
             }
         }
         .defaultSize(width: 1080, height: 760)
@@ -32,6 +34,7 @@ struct WeftApp: App {
             SettingsView()
                 .environment(model)
                 .modelContainer(model.container)
+                .environment(\.locale, .weftUI)
         }
     }
 }

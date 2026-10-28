@@ -36,13 +36,13 @@ public struct TimeEntry: Identifiable {
         return time.sorted { $0.value > $1.value }.map(\.key)
     }
 
-    /// Used when no model is available: "iTerm2, github.com and Xcode".
+    /// Used when no model is available: "iTerm2、github.com 和 Xcode".
     public var fallbackDescription: String {
         let names = usage.prefix(3).map(\.name)
         switch names.count {
-        case 0: return "Activity"
+        case 0: return "活动"
         case 1: return names[0]
-        default: return names.dropLast().joined(separator: ", ") + " and " + names[names.count - 1]
+        default: return names.dropLast().joined(separator: "、") + " 和 " + names[names.count - 1]
         }
     }
 
@@ -56,13 +56,13 @@ public struct TimeEntry: Identifiable {
     public var facts: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        let apps = usage.prefix(6).map { "\($0.name) \(Int(($0.time / 60).rounded()))m" }
+        let apps = usage.prefix(6).map { "\($0.name) \(Int(($0.time / 60).rounded())) 分钟" }
         let titles = titles.prefix(12).map { "- \($0.prefix(90))" }
         return """
-            Time: \(formatter.string(from: start))–\(formatter.string(from: end)), \(Int((activeTime / 60).rounded())) minutes active
-            Apps and websites: \(apps.joined(separator: ", "))
-            Window titles, most time first:
-            \(titles.isEmpty ? "(none)" : titles.joined(separator: "\n"))
+            时间：\(formatter.string(from: start))–\(formatter.string(from: end))，活跃 \(Int((activeTime / 60).rounded())) 分钟
+            应用和网站：\(apps.joined(separator: "、"))
+            窗口标题（按停留时长排序）：
+            \(titles.isEmpty ? "（无）" : titles.joined(separator: "\n"))
             """
     }
 }

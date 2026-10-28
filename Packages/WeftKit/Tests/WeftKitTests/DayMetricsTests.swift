@@ -21,7 +21,7 @@ struct DayMetricsTests {
         let metrics = DayMetrics.compute([sample(0, 120, "code")], categories: categories)
         #expect(metrics.deepWorkTime == 7200)
         #expect(metrics.score?.value == 100)
-        #expect(metrics.score?.label == "Exceptional")
+        #expect(metrics.score?.label == "极佳")
     }
 
     @Test func shortInterruptionsDoNotBreakDeepWork() {
@@ -85,9 +85,9 @@ struct DayMetricsTests {
     }
 
     @Test func labels() {
-        #expect(FocusScore.label(for: 97) == "Exceptional")
-        #expect(FocusScore.label(for: 80) == "Good")
-        #expect(FocusScore.label(for: 1) == "Very Poor")
-        #expect(FocusScore.label(for: 0) == "No Score")
+        #expect(FocusScore.label(for: 97) == "极佳")
+        #expect(FocusScore.label(for: 80) == "良好")
+        #expect(FocusScore.label(for: 1) == "很差")
+        #expect(FocusScore.label(for: 0) == "无评分")
     }
 }

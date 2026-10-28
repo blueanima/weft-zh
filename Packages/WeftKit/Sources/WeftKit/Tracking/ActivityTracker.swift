@@ -240,7 +240,7 @@ public final class ActivityTracker {
     }
 
     /// Stops recording. While the user merely paused tracking, the last activity stays on
-    /// display so resuming doesn't flash "Away"; sleep and screen lock clear it.
+    /// display so resuming doesn't flash "离开"; sleep and screen lock clear it.
     private func suspend() {
         apply(machine.suspend(at: .now), category: nil)
         if isSuspendedBySystem {

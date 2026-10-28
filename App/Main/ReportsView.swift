@@ -12,17 +12,17 @@ struct ReportsView: View {
         let isCurrent = week.contains(.now)
         WeekReport(start: week.start)
             .id(week.start)
-            .navigationTitle("Reports")
+            .navigationTitle("报告")
             .navigationSubtitle(rangeLabel(week))
             .toolbar {
                 ToolbarItemGroup {
                     Button { shift(-1) } label: { Image(systemName: "chevron.left") }
-                        .help("Previous week")
+                        .help("上一周")
                         .keyboardShortcut(.leftArrow, modifiers: .command)
-                    Button("This Week") { weekStart = ReportsView.week(containing: .now).start }
+                    Button("本周") { weekStart = ReportsView.week(containing: .now).start }
                         .disabled(isCurrent)
                     Button { shift(1) } label: { Image(systemName: "chevron.right") }
-                        .help("Next week")
+                        .help("下一周")
                         .disabled(isCurrent)
                         .keyboardShortcut(.rightArrow, modifiers: .command)
                 }
@@ -64,7 +64,7 @@ private struct WeekReport: View {
 
     @State private var hoveredDay: Date?
 
-    /// Categories beyond this many share one grey "Other" in the chart.
+    /// Categories beyond this many share one grey "其他" in the chart.
     private let chartCategories = 5
     private static let otherKey = "__other"
 
@@ -92,26 +92,26 @@ private struct WeekReport: View {
 
         ScrollView {
             if total.activeTime == 0 {
-                ContentUnavailableView("No activity this week", systemImage: "chart.bar",
-                                       description: Text("Nothing was tracked between these dates."))
+                ContentUnavailableView("本周没有活动", systemImage: "chart.bar",
+                                       description: Text("这段时间内没有记录到任何活动。"))
                     .frame(maxWidth: .infinity, minHeight: 400)
             } else {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(spacing: 12) {
-                        summaryTile("Tracked", total.activeTime, change: change(\.activeTime),
-                                    "\(Format.duration(total.activeTime / Double(max(summary.activeDays, 1)))) a day over \(summary.activeDays) day\(summary.activeDays == 1 ? "" : "s")")
-                        summaryTile("Focus", total.focusTime, change: change(\.focusTime), "\(Format.duration(total.deepWorkTime)) deep work")
-                        summaryTile("Meetings", total.meetingTime, change: change(\.meetingTime), higherIsBetter: false,
+                        summaryTile("记录时长", total.activeTime, change: change(\.activeTime),
+                                    "\(summary.activeDays) 天里平均每天 \(Format.duration(total.activeTime / Double(max(summary.activeDays, 1))))")
+                        summaryTile("专注", total.focusTime, change: change(\.focusTime), "深度工作 \(Format.duration(total.deepWorkTime))")
+                        summaryTile("会议", total.meetingTime, change: change(\.meetingTime), higherIsBetter: false,
                                     share(total.meetingTime, of: total.activeTime))
-                        summaryTile("Distracted", total.distractingTime, change: change(\.distractingTime), higherIsBetter: false,
+                        summaryTile("分心", total.distractingTime, change: change(\.distractingTime), higherIsBetter: false,
                                     share(total.distractingTime, of: total.activeTime))
-                        tile("Avg. Focus Score", average.map(String.init) ?? "–", isEmpty: average == nil,
-                             change: average.flatMap { now in last.averageScore.map { ChangeLabel(change: Change(Double(now), baseline: Double($0)), unit: .points, help: "vs. last week") } },
-                             average.map { isEarly ? "Early estimate" : FocusScore.label(for: $0) } ?? "No score yet")
+                        tile("平均专注分", average.map(String.init) ?? "–", isEmpty: average == nil,
+                             change: average.flatMap { now in last.averageScore.map { ChangeLabel(change: Change(Double(now), baseline: Double($0)), unit: .points, help: "与上周相比") } },
+                             average.map { isEarly ? "早期估计" : FocusScore.label(for: $0) } ?? "暂无评分")
                     }
-                    Card("Time by category") { categoryChart(stats, total: total) }
-                    Card("Focus Score") { scoreChart(stats) }
-                    Card("Categories this week") { CategoryBreakdown(metrics: total) }
+                    Card("各分类用时") { categoryChart(stats, total: total) }
+                    Card("专注分") { scoreChart(stats) }
+                    Card("本周分类") { CategoryBreakdown(metrics: total) }
                 }
                 .padding(20)
             }
@@ -141,26 +141,26 @@ private struct WeekReport: View {
         let target = model.preferences.workHoursTarget
         return Chart {
             ForEach(rows) { row in
-                BarMark(x: .value("Day", row.day, unit: .day), y: .value("Hours", row.hours))
-                    .foregroundStyle(by: .value("Category", name(row.category)))
+                BarMark(x: .value("日期", row.day, unit: .day), y: .value("小时", row.hours))
+                    .foregroundStyle(by: .value("分类", name(row.category)))
             }
             if let hoveredDay, let stat = stats.first(where: { $0.day == hoveredDay }) {
-                RectangleMark(x: .value("Day", hoveredDay, unit: .day))
+                RectangleMark(x: .value("日期", hoveredDay, unit: .day))
                     .foregroundStyle(Color.primary.opacity(0.06))
                     .annotation(position: .top, overflowResolution: .init(x: .fit, y: .disabled)) {
                         VStack(spacing: 1) {
                             Text(Format.duration(stat.metrics.activeTime)).fontWeight(.semibold).monospacedDigit()
-                            Text(stat.metrics.activeTime > 0 ? "Click to open" : "No activity").foregroundStyle(.secondary)
+                            Text(stat.metrics.activeTime > 0 ? "点击查看" : "没有活动").foregroundStyle(.secondary)
                         }
                         .font(.caption2)
                     }
             }
             if target > 0 {
-                RuleMark(y: .value("Target", target))
+                RuleMark(y: .value("目标", target))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
                     .foregroundStyle(Color.secondary)
                     .annotation(position: .top, alignment: .trailing) {
-                        Text("Target \(Format.duration(target * 3600))").font(.caption2).foregroundStyle(.secondary)
+                        Text("目标 \(Format.duration(target * 3600))").font(.caption2).foregroundStyle(.secondary)
                     }
             }
         }
@@ -195,7 +195,7 @@ private struct WeekReport: View {
     }
 
     private func name(_ key: String) -> String {
-        key == Self.otherKey ? "Other" : model.classifier.category(key).name
+        key == Self.otherKey ? "其他" : model.classifier.category(key).name
     }
 
     private func color(_ key: String) -> Color {
@@ -211,10 +211,10 @@ private struct WeekReport: View {
         }
         return Chart(points, id: \.stat.id) { point in
             let value = point.stat.metrics.score?.value ?? 0
-            LineMark(x: .value("Day", point.stat.day, unit: .day), y: .value("Score", value))
-                .foregroundStyle(by: .value("Run", point.run))
-            PointMark(x: .value("Day", point.stat.day, unit: .day), y: .value("Score", value))
-                .foregroundStyle(by: .value("Run", point.run))
+            LineMark(x: .value("日期", point.stat.day, unit: .day), y: .value("分数", value))
+                .foregroundStyle(by: .value("段", point.run))
+            PointMark(x: .value("日期", point.stat.day, unit: .day), y: .value("分数", value))
+                .foregroundStyle(by: .value("段", point.run))
                 .annotation(position: .top) { Text("\(value)").font(.caption2) }
         }
         .chartForegroundStyleScale(range: [Color.accentColor])
@@ -235,13 +235,13 @@ private struct WeekReport: View {
     }
 
     private func share(_ value: TimeInterval, of total: TimeInterval) -> String {
-        value == 0 ? "None" : "\(Format.percent(value / max(total, 1))) of tracked time"
+        value == 0 ? "无" : "占记录时长 \(Format.percent(value / max(total, 1)))"
     }
 
     private func summaryTile(_ title: String, _ value: TimeInterval, change: Change?, higherIsBetter: Bool = true,
                              _ detail: String) -> some View {
         tile(title, Format.duration(value), isEmpty: value == 0,
-             change: change.map { ChangeLabel(change: $0, higherIsBetter: higherIsBetter, help: "vs. last week") }, detail)
+             change: change.map { ChangeLabel(change: $0, higherIsBetter: higherIsBetter, help: "与上周相比") }, detail)
     }
 
     private func tile(_ title: String, _ value: String, isEmpty: Bool, change: ChangeLabel?, _ detail: String) -> some View {

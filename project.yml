@@ -5,6 +5,7 @@ options:
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
+  developmentLanguage: zh-Hans
 
 configFiles:
   Debug: Config/Base.xcconfig
@@ -32,12 +33,14 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: Weft
+        CFBundleDevelopmentRegion: zh-Hans
+        CFBundleLocalizations: [zh-Hans]
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.productivity
-        NSAppleEventsUsageDescription: Weft reads the URL of the active browser tab to categorize your time. Nothing leaves your Mac.
-        NSHumanReadableCopyright: Open source under the MIT license.
+        NSAppleEventsUsageDescription: Weft 需要读取当前浏览器标签页的网址，用来给你的时间分类。这些数据不会离开这台 Mac。
+        NSHumanReadableCopyright: 基于 MIT 许可证开源。
         CFBundleURLTypes:
           - CFBundleURLName: me.weishu.Weft
             CFBundleURLSchemes: [weft]

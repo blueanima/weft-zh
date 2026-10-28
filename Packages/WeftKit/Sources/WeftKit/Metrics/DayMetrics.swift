@@ -173,15 +173,15 @@ public struct FocusScore: Sendable, Equatable {
     /// Same wording as Rize.
     public static func label(for value: Int) -> String {
         switch value {
-        case 97...: "Exceptional"
-        case 94...: "Excellent"
-        case 90...: "Very Good"
-        case 80...: "Good"
-        case 65...: "Average"
-        case 50...: "Mediocre"
-        case 25...: "Poor"
-        case 1...: "Very Poor"
-        default: "No Score"
+        case 97...: "极佳"
+        case 94...: "优秀"
+        case 90...: "很好"
+        case 80...: "良好"
+        case 65...: "一般"
+        case 50...: "平庸"
+        case 25...: "较差"
+        case 1...: "很差"
+        default: "无评分"
         }
     }
 

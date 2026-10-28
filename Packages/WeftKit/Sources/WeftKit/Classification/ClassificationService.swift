@@ -63,9 +63,19 @@ public final class ClassificationService {
     }
 
     private func seedCategoriesIfNeeded() {
-        let existing = Set(((try? modelContext.fetch(FetchDescriptor<CategoryRecord>())) ?? []).map(\.key))
+        let records = (try? modelContext.fetch(FetchDescriptor<CategoryRecord>())) ?? []
+        let existing = Set(records.map(\.key))
         for (index, definition) in CategoryDefinition.defaults.enumerated() where !existing.contains(definition.key) {
             modelContext.insert(CategoryRecord(definition, sortOrder: index))
+        }
+        // 中文版升级：还挂着英文默认名的内置分类改成中文；用户自己改过名字的不动。
+        for record in records {
+            guard let english = CategoryDefinition.legacyEnglishNames[record.key],
+                  record.name == english,
+                  let definition = CategoryDefinition.defaults.first(where: { $0.key == record.key }),
+                  definition.name != english else { continue }
+            record.name = definition.name
+            record.hint = definition.hint
         }
         try? modelContext.save()
     }

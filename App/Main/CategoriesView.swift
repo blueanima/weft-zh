@@ -18,11 +18,11 @@ enum CategoryType: CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .focus: "Focus"
-        case .meeting: "Meetings"
-        case .neutral: "Neutral"
-        case .distracting: "Distracting"
-        case .doNotTrack: "Don't Track"
+        case .focus: "专注"
+        case .meeting: "会议"
+        case .neutral: "中性"
+        case .distracting: "分心"
+        case .doNotTrack: "不追踪"
         }
     }
 
@@ -38,11 +38,11 @@ enum CategoryType: CaseIterable, Identifiable {
 
     var explanation: String {
         switch self {
-        case .focus: "Counts as focus time and raises your Focus Score."
-        case .meeting: "Counted separately; never marked as away while you listen."
-        case .neutral: "Tracked, but neither focus nor distraction."
-        case .distracting: "Lowers your Focus Score and triggers the blocker during focus sessions."
-        case .doNotTrack: "Activity is discarded and never stored."
+        case .focus: "计入专注时间，并提升专注分。"
+        case .meeting: "单独统计；开会时即使不操作也不会算作离开。"
+        case .neutral: "会被记录，但既不算专注也不算分心。"
+        case .distracting: "会降低专注分，并在专注时段触发拦截。"
+        case .doNotTrack: "活动会被丢弃，不会保存。"
         }
     }
 
@@ -64,7 +64,7 @@ struct CategoriesView: View {
                 let members = categories.filter { CategoryType($0) == type }
                 Section {
                     if members.isEmpty {
-                        Text("No categories").foregroundStyle(.tertiary)
+                        Text("暂无分类").foregroundStyle(.tertiary)
                     }
                     ForEach(members) { category in
                         CategoryRow(category: category, type: type)
@@ -77,7 +77,7 @@ struct CategoriesView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Categories")
+        .navigationTitle("分类")
     }
 }
 
@@ -97,7 +97,7 @@ private struct CategoryRow: View {
                 }
             }
             Spacer()
-            Button("Edit") { isEditing = true }
+            Button("编辑") { isEditing = true }
                 .buttonStyle(.borderless)
                 .popover(isPresented: $isEditing, arrowEdge: .trailing) {
                     CategoryEditor(category: category) { model.classifier.updateCategory($0) }
@@ -113,7 +113,7 @@ private struct CategoryRow: View {
                     }
                 }
             } label: {
-                Text("Move to")
+                Text("移动到")
             }
             .fixedSize()
         }
@@ -132,19 +132,19 @@ private struct CategoryEditor: View {
 
     var body: some View {
         Form {
-            TextField("Name", text: $draft.name)
-            ColorPicker("Color", selection: Binding(
+            TextField("名称", text: $draft.name)
+            ColorPicker("颜色", selection: Binding(
                 get: { draft.color },
                 set: { draft.colorHex = $0.hexString }
             ), supportsOpacity: false)
-            TextField("Description", text: $draft.hint, prompt: Text("What belongs here"), axis: .vertical)
+            TextField("描述", text: $draft.hint, prompt: Text("这类包含什么"), axis: .vertical)
                 .lineLimit(2...4)
-            Text("The description helps the on-device model decide what goes into this category.")
+            Text("这段描述会帮助设备端模型判断哪些活动归入此分类。")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
                 Spacer()
-                Button("Cancel") { dismiss() }
-                Button("Save") {
+                Button("取消") { dismiss() }
+                Button("保存") {
                     onSave(draft)
                     dismiss()
                 }

@@ -9,25 +9,25 @@ struct RulesView: View {
 
     var body: some View {
         Form {
-            Section("Add a rule") {
-                Picker("Match", selection: $field) {
+            Section("添加规则") {
+                Picker("匹配方式", selection: $field) {
                     ForEach(RuleField.allCases, id: \.self) { Text(Self.label(for: $0)).tag($0) }
                 }
-                TextField("Pattern", text: $pattern, prompt: Text(Self.placeholder(for: field)))
+                TextField("匹配内容", text: $pattern, prompt: Text(Self.placeholder(for: field)))
                     .onSubmit(add)
-                Picker("Category", selection: $categoryKey) {
+                Picker("分类", selection: $categoryKey) {
                     ForEach(model.classifier.categories) { Text($0.name).tag($0.key) }
                 }
                 HStack {
                     Spacer()
-                    Button("Add Rule", action: add)
+                    Button("添加规则", action: add)
                         .disabled(pattern.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
 
             Section {
                 if model.classifier.userRules.isEmpty {
-                    Text("No rules yet. Rules are also created when you recategorize an app or site.")
+                    Text("还没有规则。修改某个应用或网站的分类时，也会自动生成规则。")
                         .foregroundStyle(.secondary)
                 }
                 ForEach(model.classifier.userRules) { rule in
@@ -42,18 +42,18 @@ struct RulesView: View {
                             Image(systemName: "trash")
                         }
                         .buttonStyle(.borderless)
-                        .help("Delete rule and reclassify matching activity")
+                        .help("删除规则并重新分类匹配的活动")
                     }
                 }
             } header: {
-                Text("Your rules")
+                Text("你的规则")
             } footer: {
-                Text("Your rules take priority over \(BuiltinRules.all.count) built-in rules. More specific matches (title, URL) win over domains, which win over apps. Anything no rule matches is classified by the on-device model.")
+                Text("你的规则优先于 \(BuiltinRules.all.count) 条内置规则。越具体的匹配优先级越高：标题和网址高于域名，域名高于应用。没有规则匹配的活动交给设备端模型分类。")
                     .font(.callout).foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Rules")
+        .navigationTitle("规则")
     }
 
     private func add() {
@@ -63,10 +63,10 @@ struct RulesView: View {
 
     static func label(for field: RuleField) -> String {
         switch field {
-        case .bundleID: "App bundle ID"
-        case .domain: "Domain"
-        case .titleContains: "Title contains"
-        case .urlContains: "URL contains"
+        case .bundleID: "应用 Bundle ID"
+        case .domain: "域名"
+        case .titleContains: "标题包含"
+        case .urlContains: "网址包含"
         }
     }
 
@@ -74,7 +74,7 @@ struct RulesView: View {
         switch field {
         case .bundleID: "com.apple.dt.Xcode"
         case .domain: "github.com"
-        case .titleContains: "Pull Request"
+        case .titleContains: "拉取请求"
         case .urlContains: "/watch?v="
         }
     }

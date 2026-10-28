@@ -27,14 +27,19 @@ extension CategoryDefinition {
     var color: Color { Color(hex: colorHex) }
 }
 
+extension Locale {
+    /// 界面统一使用简体中文，日期、星期和数字格式也跟着走，不随系统语言变化。
+    static let weftUI = Locale(identifier: "zh_Hans_CN")
+}
+
 enum Format {
-    /// 3725 → "1h 2m", 125 → "2m", 20 → "20s"
+    /// 3725 → "1 小时 2 分", 125 → "2 分", 20 → "20 秒"
     static func duration(_ interval: TimeInterval) -> String {
         let seconds = Int(interval.rounded())
-        if seconds < 60 { return "\(seconds)s" }
+        if seconds < 60 { return "\(seconds) 秒" }
         let minutes = seconds / 60
-        if minutes < 60 { return "\(minutes)m" }
-        return minutes % 60 == 0 ? "\(minutes / 60)h" : "\(minutes / 60)h \(minutes % 60)m"
+        if minutes < 60 { return "\(minutes) 分" }
+        return minutes % 60 == 0 ? "\(minutes / 60) 小时" : "\(minutes / 60) 小时 \(minutes % 60) 分"
     }
 
     /// Countdown style: "24:59" or "1:02:03".
@@ -49,7 +54,7 @@ enum Format {
     }
 
     static func minutesLabel(_ minutes: Int) -> String {
-        minutes < 60 ? "\(minutes) min" : (minutes % 60 == 0 ? "\(minutes / 60) h" : "\(minutes / 60) h \(minutes % 60) min")
+        minutes < 60 ? "\(minutes) 分钟" : (minutes % 60 == 0 ? "\(minutes / 60) 小时" : "\(minutes / 60) 小时 \(minutes % 60) 分钟")
     }
 }
 

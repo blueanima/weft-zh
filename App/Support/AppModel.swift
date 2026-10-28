@@ -10,11 +10,11 @@ enum Page: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .today: "Today"
-        case .reports: "Reports"
-        case .review: "Review"
-        case .categories: "Categories"
-        case .rules: "Rules"
+        case .today: "今天"
+        case .reports: "报告"
+        case .review: "待确认"
+        case .categories: "分类"
+        case .rules: "规则"
         }
     }
 
@@ -58,7 +58,7 @@ final class AppModel {
         do {
             container = try WeftSchema.makeContainer()
         } catch {
-            fatalError("Could not open the Weft database: \(error)")
+            fatalError("无法打开 Weft 数据库：\(error)")
         }
         let context = container.mainContext
         classifier = ClassificationService(modelContext: context, ai: ai)
@@ -113,12 +113,12 @@ final class AppModel {
             guard summary.completed else { return }
             switch summary.kind {
             case .breakTime:
-                notifier.post(.sessionEnded, title: "Break is over", body: "Ready to get back to it?")
+                notifier.post(.sessionEnded, title: "休息结束", body: "准备好继续了吗？")
             case .focus, .meeting:
-                var body = "\(summary.kind.title) session complete."
-                if let score = summary.score { body += " Focus Score \(score.value) – \(score.label)." }
-                if summary.distractions > 0 { body += " \(summary.distractions) distraction(s)." }
-                notifier.post(.sessionEnded, title: "Session complete", body: body)
+                var body = "\(summary.kind.title)时段结束。"
+                if let score = summary.score { body += "专注分 \(score.value)（\(score.label)）。" }
+                if summary.distractions > 0 { body += "分心 \(summary.distractions) 次。" }
+                notifier.post(.sessionEnded, title: "时段结束", body: body)
             }
         }
 

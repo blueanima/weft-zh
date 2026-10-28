@@ -133,9 +133,9 @@ public enum SessionKind: String, Codable, Sendable, CaseIterable, Identifiable {
 
     public var title: String {
         switch self {
-        case .focus: "Focus"
-        case .meeting: "Meeting"
-        case .breakTime: "Break"
+        case .focus: "专注"
+        case .meeting: "会议"
+        case .breakTime: "休息"
         }
     }
 }

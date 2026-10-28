@@ -16,9 +16,9 @@ struct DayView: View {
             .toolbar {
                 ToolbarItemGroup {
                     Button { showCalendar = true } label: { Image(systemName: "calendar") }
-                        .help("Go to a day")
+                        .help("跳转到某一天")
                         .popover(isPresented: $showCalendar) {
-                            DatePicker("Day", selection: Binding(
+                            DatePicker("日期", selection: Binding(
                                 get: { model.day },
                                 set: { model.day = Calendar.current.startOfDay(for: $0); showCalendar = false }
                             ), in: ...Date.now, displayedComponents: .date)
@@ -27,13 +27,13 @@ struct DayView: View {
                             .padding()
                         }
                     Button { shift(-1) } label: { Image(systemName: "chevron.left") }
-                        .help("Previous day")
+                        .help("前一天")
                         .keyboardShortcut(.leftArrow, modifiers: .command)
-                    Button("Today") { model.showDay() }
+                    Button("今天") { model.showDay() }
                         .disabled(Calendar.current.isDateInToday(day))
                         .keyboardShortcut("t", modifiers: .command)
                     Button { shift(1) } label: { Image(systemName: "chevron.right") }
-                        .help("Next day")
+                        .help("后一天")
                         .disabled(Calendar.current.isDateInToday(day))
                         .keyboardShortcut(.rightArrow, modifiers: .command)
                 }
@@ -52,9 +52,9 @@ enum DayTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .timeline: "Timeline"
-        case .breakdown: "Categories & Apps"
-        case .log: "Log"
+        case .timeline: "时间线"
+        case .breakdown: "分类与应用"
+        case .log: "记录"
         }
     }
 }
@@ -106,15 +106,15 @@ private struct DayContent: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if segments.isEmpty {
-                    ContentUnavailableView("No activity", systemImage: "clock",
-                                           description: Text("Nothing was tracked on this day."))
+                    ContentUnavailableView("没有活动", systemImage: "clock",
+                                           description: Text("这一天没有记录到任何活动。"))
                         .frame(maxWidth: .infinity, minHeight: 300)
                 } else {
                     Overview(metrics: metrics, target: model.preferences.workHoursTarget * 3600,
                              baseline: baseline(), isToday: Calendar.current.isDateInToday(day))
                     DailyReview(day: day, metrics: metrics)
                     VStack(alignment: .leading, spacing: 14) {
-                        Picker("View", selection: $tab) {
+                        Picker("视图", selection: $tab) {
                             ForEach(DayTab.allCases) { Text($0.title).tag($0) }
                         }
                         .pickerStyle(.segmented)
@@ -125,8 +125,8 @@ private struct DayContent: View {
                             DayTimeline(day: day, segments: segments, sessions: sessions) { tab = .log }
                         case .breakdown:
                             HStack(alignment: .top, spacing: 16) {
-                                Card("Categories") { CategoryBreakdown(metrics: metrics) }
-                                Card("Apps & sites") { AppBreakdown(samples: samples, total: metrics.activeTime) }
+                                Card("分类") { CategoryBreakdown(metrics: metrics) }
+                                Card("应用与网站") { AppBreakdown(samples: samples, total: metrics.activeTime) }
                             }
                         case .log:
                             ActivityList(segments: segments)
@@ -176,7 +176,7 @@ private struct Overview: View {
     let isToday: Bool
     @State private var showScoreDetails = false
 
-    private var comparison: String { isToday ? "vs. usual by now" : "vs. 7-day average" }
+    private var comparison: String { isToday ? "与平常此时相比" : "与 7 天平均相比" }
 
     /// Nil without a week of history to compare against.
     private func change(_ value: KeyPath<DayMetrics, TimeInterval>) -> Change? {
@@ -189,7 +189,7 @@ private struct Overview: View {
                 ScoreRing(score: metrics.score, activeTime: metrics.activeTime, size: 112)
             }
             .buttonStyle(.plain)
-            .help("How the Focus Score works")
+            .help("专注分是怎么算的")
             .popover(isPresented: $showScoreDetails) { ScoreExplanation(score: metrics.score).padding() }
 
             VStack(alignment: .leading, spacing: 10) {
@@ -197,17 +197,17 @@ private struct Overview: View {
                     Text(Format.duration(metrics.activeTime))
                         .font(.system(size: 40, weight: .semibold, design: .rounded))
                         .monospacedDigit()
-                    Text("tracked of \(Format.duration(target))").foregroundStyle(.secondary)
+                    Text("已记录 / 目标 \(Format.duration(target))").foregroundStyle(.secondary)
                     if let change = change(\.activeTime) {
                         ChangeLabel(change: change, suffix: comparison).padding(.leading, 4)
                     }
                 }
                 GoalBar(metrics: metrics, target: target)
                 HStack(spacing: 14) {
-                    legend(GoalBar.focusColor, "Focus", metrics.focusTime)
-                    legend(GoalBar.meetingColor, "Meetings", metrics.meetingTime)
-                    legend(GoalBar.otherColor, "Other", max(0, metrics.activeTime - metrics.focusTime - metrics.meetingTime - metrics.distractingTime))
-                    legend(GoalBar.distractedColor, "Distracted", metrics.distractingTime)
+                    legend(GoalBar.focusColor, "专注", metrics.focusTime)
+                    legend(GoalBar.meetingColor, "会议", metrics.meetingTime)
+                    legend(GoalBar.otherColor, "其他", max(0, metrics.activeTime - metrics.focusTime - metrics.meetingTime - metrics.distractingTime))
+                    legend(GoalBar.distractedColor, "分心", metrics.distractingTime)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -215,12 +215,12 @@ private struct Overview: View {
             Divider().frame(height: 100)
 
             VStack(alignment: .leading, spacing: 12) {
-                Fact(symbol: "brain.head.profile", title: "Deep work",
-                     value: Format.duration(metrics.deepWorkTime), detail: "in stretches of 25 min or more",
+                Fact(symbol: "brain.head.profile", title: "深度工作",
+                     value: Format.duration(metrics.deepWorkTime), detail: "单段 25 分钟以上",
                      change: change(\.deepWorkTime), comparison: comparison)
-                Fact(symbol: "timer", title: "Longest focus",
-                     value: Format.duration(metrics.longestFocusStretch), detail: "without a real break")
-                Fact(symbol: "arrow.left.arrow.right", title: "Switching",
+                Fact(symbol: "timer", title: "最长专注",
+                     value: Format.duration(metrics.longestFocusStretch), detail: "期间没有真正休息")
+                Fact(symbol: "arrow.left.arrow.right", title: "切换",
                      value: switching.0, detail: switching.1)
             }
             .frame(width: 230, alignment: .leading)
@@ -230,10 +230,10 @@ private struct Overview: View {
     }
 
     private var switching: (String, String) {
-        guard metrics.activeTime >= 15 * 60 else { return ("\(metrics.contextSwitches) switches", "between apps and sites") }
+        guard metrics.activeTime >= 15 * 60 else { return ("\(metrics.contextSwitches) 次切换", "在应用与网站之间") }
         let perHour = metrics.switchesPerHour
-        let label = perHour <= 12 ? "Steady" : perHour <= 25 ? "Some switching" : "Fragmented"
-        return (label, "\(Int(perHour.rounded())) switches per hour")
+        let label = perHour <= 12 ? "稳定" : perHour <= 25 ? "略有切换" : "被打断"
+        return (label, "每小时 \(Int(perHour.rounded())) 次切换")
     }
 
     private func legend(_ color: Color, _ title: String, _ value: TimeInterval) -> some View {
@@ -284,18 +284,18 @@ private struct ScoreExplanation: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("How the Focus Score works").font(.headline)
-            Text("100 × (½ deep-work share + ½ focus share) − switching penalty − distraction penalty. Meetings are left out.")
+            Text("专注分是怎么算的").font(.headline)
+            Text("100 ×（½ 深度工作占比 + ½ 专注占比）− 切换扣分 − 分心扣分。会议不计入。")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let score {
                 Divider()
-                LabeledContent("Focus share", value: Format.percent(score.focusRatio))
-                LabeledContent("Deep-work share (≥ 25 min stretches)", value: Format.percent(score.deepWorkRatio))
-                LabeledContent("Switching penalty", value: String(format: "−%.0f", score.switchPenalty))
-                LabeledContent("Distraction penalty", value: String(format: "−%.0f", score.distractionPenalty))
+                LabeledContent("专注占比", value: Format.percent(score.focusRatio))
+                LabeledContent("深度工作占比（单段 ≥ 25 分钟）", value: Format.percent(score.deepWorkRatio))
+                LabeledContent("切换扣分", value: String(format: "−%.0f", score.switchPenalty))
+                LabeledContent("分心扣分", value: String(format: "−%.0f", score.distractionPenalty))
             } else {
-                Text("Needs at least 15 minutes of tracked time.").font(.callout)
+                Text("至少需要 15 分钟的记录时间。").font(.callout)
             }
         }
         .frame(width: 340)
@@ -315,7 +315,7 @@ private struct DailyReview: View {
     var body: some View {
         if text == nil, case .unavailable(let reason) = model.classifier.aiAvailability {
             // Nothing to act on here, so keep it out of the way.
-            Label("Daily reviews need Apple Intelligence. \(reason)", systemImage: "sparkles")
+            Label("每日回顾需要 Apple 智能。\(reason)", systemImage: "sparkles")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4)
@@ -331,7 +331,7 @@ private struct DailyReview: View {
                 if let text {
                     Text(text).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text("Get a short review of this day and a suggestion for tomorrow, written on device.")
+                    Text("在设备端生成这一天的简短回顾，并给出一个明天的建议。")
                         .foregroundStyle(.secondary)
                 }
                 if let error {
@@ -343,7 +343,7 @@ private struct DailyReview: View {
                 if isGenerating {
                     ProgressView().controlSize(.small)
                 } else {
-                    Button(text == nil ? "Review My Day" : "Regenerate", action: generate)
+                    Button(text == nil ? "回顾这一天" : "重新生成", action: generate)
                 }
             }
         }
@@ -359,7 +359,7 @@ private struct DailyReview: View {
             do {
                 text = try await model.ai.summarize(facts)
             } catch {
-                self.error = "Could not generate a review: \(error.localizedDescription)"
+                self.error = "无法生成回顾：\(error.localizedDescription)"
             }
             isGenerating = false
         }
@@ -371,20 +371,19 @@ private struct DailyReview: View {
             .map { "\(model.classifier.category($0.key).name) \(Format.duration($0.value))" }
         let apps = metrics.byApp.sorted { $0.value > $1.value }.prefix(5).map { "\($0.key) \(Format.duration($0.value))" }
         let sites = metrics.byDomain.sorted { $0.value > $1.value }.prefix(5).map { "\($0.key) \(Format.duration($0.value))" }
-        let busiest = metrics.byHour.sorted { $0.value > $1.value }.prefix(3).map { "\($0.key):00" }
-        let language = Locale.current.localizedString(forLanguageCode: Locale.preferredLanguages.first ?? "en") ?? "English"
+        let busiest = metrics.byHour.sorted { $0.value > $1.value }.prefix(3).map { "\($0.key) 点" }
         return """
-            Respond in \(language).
-            Day: \(day.formatted(date: .complete, time: .omitted))
-            Tracked time: \(Format.duration(metrics.activeTime)) (target \(Format.duration(model.preferences.workHoursTarget * 3600)))
-            Focus time: \(Format.duration(metrics.focusTime)); deep work (25+ minute stretches): \(Format.duration(metrics.deepWorkTime)); longest focus stretch: \(Format.duration(metrics.longestFocusStretch))
-            Meetings: \(Format.duration(metrics.meetingTime)); distracting: \(Format.duration(metrics.distractingTime))
-            Context switches: \(metrics.contextSwitches) (\(String(format: "%.0f", metrics.switchesPerHour)) per hour)
-            Focus Score: \(metrics.score.map { "\($0.value)/100 (\($0.label))" } ?? "n/a")
-            Top categories: \(categories.joined(separator: ", "))
-            Top apps: \(apps.joined(separator: ", "))
-            Top sites: \(sites.joined(separator: ", "))
-            Busiest hours: \(busiest.joined(separator: ", "))
+            请用简体中文回答。
+            日期：\(day.formatted(date: .complete, time: .omitted))
+            记录时长：\(Format.duration(metrics.activeTime))（目标 \(Format.duration(model.preferences.workHoursTarget * 3600))）
+            专注时间：\(Format.duration(metrics.focusTime))；深度工作（单段 25 分钟以上）：\(Format.duration(metrics.deepWorkTime))；最长专注：\(Format.duration(metrics.longestFocusStretch))
+            会议：\(Format.duration(metrics.meetingTime))；分心：\(Format.duration(metrics.distractingTime))
+            上下文切换：\(metrics.contextSwitches) 次（每小时 \(String(format: "%.0f", metrics.switchesPerHour)) 次）
+            专注分：\(metrics.score.map { "\($0.value)/100（\($0.label)）" } ?? "无")
+            主要分类：\(categories.joined(separator: "、"))
+            主要应用：\(apps.joined(separator: "、"))
+            主要网站：\(sites.joined(separator: "、"))
+            最忙的时段：\(busiest.joined(separator: "、"))
             """
     }
 }
@@ -414,7 +413,7 @@ struct CategoryBreakdown: View {
                     withAnimation(.snappy) { showAll.toggle() }
                 } label: {
                     HStack {
-                        Text(showAll ? "Show less" : "\(rest.count) more · \(rest.map { model.classifier.category($0.key).name }.prefix(3).joined(separator: ", "))\(rest.count > 3 ? "…" : "")")
+                        Text(showAll ? "收起" : "还有 \(rest.count) 项 · \(rest.map { model.classifier.category($0.key).name }.prefix(3).joined(separator: "、"))\(rest.count > 3 ? "…" : "")")
                             .lineLimit(1)
                         Spacer()
                         if !showAll {
@@ -468,7 +467,7 @@ private struct AppBreakdown: View {
                                     Image(systemName: expanded.contains(app.bundleID) ? "chevron.up" : "chevron.down")
                                 }
                                 .buttonStyle(.borderless)
-                                .help("\(app.sites.count) site\(app.sites.count == 1 ? "" : "s")")
+                                .help("\(app.sites.count) 个网站")
                             }
                         }
                         .frame(width: 16)
@@ -512,7 +511,7 @@ struct ChangeLabel: View {
     let change: Change
     var unit: Unit = .duration
     var higherIsBetter = true
-    /// Shown after the value, e.g. "vs. last week".
+    /// Shown after the value, e.g. "与上周相比".
     var suffix: String? = nil
     var help: String? = nil
 
@@ -520,7 +519,7 @@ struct ChangeLabel: View {
         let context = suffix ?? help ?? ""
         Group {
             if isFlat {
-                Text("≈ same" + (suffix.map { " \($0)" } ?? "")).foregroundStyle(.secondary)
+                Text("≈ 持平" + (suffix.map { " \($0)" } ?? "")).foregroundStyle(.secondary)
             } else {
                 let isUp = change.difference > 0
                 HStack(spacing: 2) {

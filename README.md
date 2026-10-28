@@ -1,101 +1,104 @@
-# Weft
+# Weft（中文版）
 
-**See where your day actually went, without sending it anywhere.**
+**看清楚一天的时间到底去哪了，而数据一步都不离开你的 Mac。**
 
-Weft is a free, open-source time tracker that lives in your Mac's menu bar. It notices which app, window and website you're using, sorts the time into categories like Code, Meetings or Social Media, and draws your day as a few parallel streams of work.
+Weft 是一款免费开源的时间追踪工具，常驻在 Mac 的菜单栏。它会记下你正在用的应用、窗口和网站，把时间归到「代码」「会议」「社交媒体」这类分类里，然后把一天画成几条并行的工作流。
 
-Weft takes after [Rize](https://rize.io) but works from a different idea: people rarely do one thing at a time. You write code, check a doc, answer a message and go back to the code. So instead of a log of app switches, Weft shows the threads of work you kept coming back to.
+Weft 受了 [Rize](https://rize.io) 的启发，但出发点是另一个：人很少一次只做一件事。你写着代码，顺手看一眼文档，回一条消息，再回到代码。所以 Weft 不给你一份「应用切换日志」，而是显示你反复回到的那几条线索。
 
-## Why Weft
+> 本仓库是 [tiann/weft](https://github.com/tiann/weft) 的简体中文分支，界面、系统通知、分类和模型提示词都已汉化，功能与原版一致。英文说明见 [README.en.md](README.en.md)。
 
-- **Native and small.** Weft is built with SwiftUI, so it looks and feels like the rest of macOS. The whole app is under 10 MB, with no Electron and no bundled browser.
-- **Easy on your battery.** A native app already uses far less power than an Electron one. Weft is also event-driven instead of constantly polling your windows, so it stays idle until something actually changes.
-- **Your data never leaves your Mac.** There's no account, no server and no analytics. Categories, summaries and reviews all come from Apple's on-device model, and your history stays in a folder on your Mac (see [Privacy](#privacy)).
-- **Open source and free.** Weft is [MIT-licensed](LICENSE), with no subscription and no paid tier. You can read the code, change it and build it yourself.
+## 为什么用 Weft
 
-## What you get
+- **原生、轻量。** 用 SwiftUI 写的，长得就是 macOS 该有的样子。整个 App 不到 10 MB，没有 Electron，也没有内置浏览器内核。
+- **不折腾电池。** 原生应用本来就比 Electron 省电得多；Weft 还是事件驱动的，不会不停轮询你的窗口，没有变化就一直闲着。
+- **数据不出本机。** 没有账号、没有服务器、没有埋点。分类、摘要和回顾全部由 Apple 的设备端模型生成，历史记录只留在这台 Mac 上（见[隐私](#隐私)）。
+- **开源免费。** [MIT 协议](LICENSE)，没有订阅，没有付费档位。代码你可以读、可以改、可以自己编译。
 
-**A timeline of your day.** Time in the same category forms a *work stream* as long as you come back to it within 30 minutes. Streams of different categories overlap side by side, like events in a calendar. Each finished stream gets a one-sentence summary such as "Fixed the login redirect bug and reviewed two pull requests." Detours shorter than 10 minutes stay out of the way in the activity log below.
+## 你能得到什么
 
-**Tracking you don't have to think about.** Start Weft once and forget about it. It records when you switch apps, windows or browser tabs, and stops counting when you step away (after 5 minutes without input, adjustable), close the lid or lock the screen. Calls and meetings keep counting even when you don't touch the keyboard.
+**一天的时间线。** 同一个分类的活跃时间，只要中断不超过 30 分钟，就会连成一条*工作流*。不同分类的工作流像日历事件那样并排重叠显示。每条完整的工作流都会配一句话摘要，例如「修好了登录跳转的 bug，顺带看了两个 PR」。短于 10 分钟的零碎活动不会挤进时间线，而是收在下面的活动记录里。
 
-**Categories that sort themselves.** Weft already knows a few hundred common apps and websites. Anything new is categorized by Apple Intelligence, once per app or site. If Weft gets one wrong, click the category in the log and choose:
-- **Always for …**: remembers your choice for that app or site, including your past activity.
-- **Only this entry**: fixes just that entry.
+**不用惦记的自动记录。** 启动一次就不用管了。它会记录你切换应用、窗口或浏览器标签页的时刻；你离开（默认 5 分钟没有输入，可调）、合盖或锁屏时自动停止计时。通话和会议即使你不碰键盘也照常计入。
 
-The **Review** page collects the AI's guesses so you can confirm them in one go.
+**自己会归类的分类。** Weft 已经认识几百个常见应用和网站。没见过的由 Apple 智能判断，每个应用或网站只判断一次。判断错了，在记录里点开分类选：
 
-**A Focus Score.** A 0–100 score for each day. It goes up with long stretches of focused work (25 minutes or more counts as deep work) and down with frequent context switching and time spent on distractions. Meetings don't count either way. Click the score to see how it was calculated.
+- **始终如此**：让这个应用或网站以后都归到这里，连历史记录一起改。
+- **只改这一条**：只修当前这一条。
 
-**Focus, meeting and break sessions.** Start a timed session from the menu bar. Breaks can take over the screen, so you actually step away. When a focus session ends, Weft shows how focused you were and asks how it felt to you.
+**待确认**页面会把模型的判断集中列出来，让你一次性确认。
 
-**A gentle distraction blocker.** During a focus session, if you stay on something distracting for 10 seconds (by default Social Media, Entertainment, Gaming, Shopping and Personal), Weft asks whether you meant to. You can go back to work, mark the app or site as *not a distraction*, or switch the blocker off for the rest of the session. You choose which categories count as distracting, and whether you get a full-screen prompt or just a notification.
+**专注分。** 每天 0–100 分。长时间专注会加分（单段 25 分钟以上算深度工作），频繁切换上下文和耗在分心内容上会减分。会议既不加也不减。点分数可以看到它是怎么算出来的。
 
-**Breaks and healthy hours.** Weft reminds you to take a break after an hour of continuous work. Stepping away resets the timer, so it never nags you right after you get back. Set a daily target and Weft also lets you know when you reach it and when you're working too long.
+**专注、会议、休息时段。** 从菜单栏开始一次计时。休息可以全屏接管，让你真的站起来走一走。专注时段结束后，Weft 会告诉你这段时间的专注程度，并问你自己感觉如何。
 
-**Daily and weekly reviews.** For any day, ask for a short on-device review with a suggestion for tomorrow. The weekly report compares tracked, focus, meeting and distracted time with the previous week, and shows time by category and your Focus Score trend. Click a day to open it.
+**温和的分心拦截。** 专注时段里，如果你在分心内容上待了 10 秒（默认是社交媒体、娱乐、游戏、购物和个人事务），Weft 会问你是有意的吗。你可以回到工作、把这个应用或网站标为*不算分心*，或者在本次时段内关掉拦截。哪些分类算分心、用全屏提醒还是只发通知，都由你决定。
 
-## Privacy
+**休息提醒与工作时长。** 连续工作一小时后会提醒你休息。离开一下就会重置计时，所以不会在你刚坐下时就来烦你。设一个每日目标，达到时和超时工作时它都会告诉你。
 
-- **What Weft records:** the app in front, its window title and, in supported browsers, the address of the current tab.
-- **What it never records:** screenshots, keystrokes or the contents of your screen.
-- **Where it goes:** nowhere. Categories, summaries and reviews are all produced on your Mac. Your data lives in `~/Library/Application Support/Weft/`.
-- **What you control:** In **Settings → Tracking**, you can stop recording window titles, keep only the domain of URLs, and exclude specific apps and websites completely. Pause tracking any time from the menu bar or Settings.
-- **Your data is yours:** You can export everything to CSV from **Settings → Data**. To erase your history, quit Weft and delete the folder above.
+**每日与每周回顾。** 任何一天都可以让设备端模型写一段简短回顾，并给出明天的建议。周报会把记录时长、专注、会议和分心时间与上周对比，还会按分类拆解时间、展示专注分走势。点某一天就能进去看。
 
-## Getting started
+## 隐私
 
-You'll need **macOS 26 or later**. Apple Intelligence is optional but recommended. Without it, Weft still categorizes the apps and sites it already knows and anything you've set yourself. Everything else waits on the Review page until you sort it.
+- **记录什么：** 前台应用、它的窗口标题，以及在支持的浏览器里，当前标签页的网址。
+- **绝不记录：** 截图、按键、屏幕内容。
+- **数据去哪：** 哪都不去。分类、摘要、回顾都在你的 Mac 上生成，数据存在 `~/Library/Application Support/Weft/`。
+- **你能控制什么：** 在**设置 → 追踪**里，可以停止记录窗口标题、只保留网址的域名，以及把特定应用和网站完全排除在外。随时可以从菜单栏或设置里暂停追踪。
+- **数据是你的：** 在**设置 → 数据**里可以把全部记录导出成 CSV。想清空历史，退出 Weft 后删掉上面那个文件夹即可。
 
-1. Download the latest `Weft-<version>.dmg` from [Releases](https://github.com/tiann/weft/releases/latest).
-2. Open it and drag **Weft** into **Applications**.
-3. Open Weft from Applications. It's signed and notarized by Apple, so macOS opens it without warnings.
+## 开始使用
 
-Weft appears in the menu bar. On first launch, it asks for Accessibility access. The other permissions come up the first time Weft needs them:
+需要 **macOS 26 或更新版本**。Apple 智能是可选项，但建议开启。没开也能用：Weft 照样能给已知的应用和网站，以及你自己设过规则的内容分类，其余的会留在「待确认」页面等你处理。
 
-| Permission | What it's for |
+1. 从 [Releases](https://github.com/tiann/weft/releases/latest) 下载最新的 `Weft-<版本>.dmg`（原版仓库的构建包）。
+2. 打开后把 **Weft** 拖进**应用程序**。
+3. 从「应用程序」里打开。它已由 Apple 签名并公证，macOS 不会弹警告。
+
+Weft 会出现在菜单栏。首次启动会请求辅助功能权限，其余权限会在第一次用到时再问：
+
+| 权限 | 用途 |
 | --- | --- |
-| Accessibility | Reading window titles, so the timeline shows *which* document or project you were working in, not just the app |
-| Automation (asked once per browser) | Reading the current tab's address in Safari, Chrome, Arc, Edge, Brave, Vivaldi, Opera, Dia and Comet. Other browsers are tracked by app and window title only |
-| Notifications | Break reminders, session endings and the blocker's notification mode |
+| 辅助功能 | 读取窗口标题，这样时间线上能看到你在处理*哪份*文档或项目，而不只是哪个应用 |
+| 自动化（每个浏览器问一次） | 读取 Safari、Chrome、Arc、Edge、Brave、Vivaldi、Opera、Dia、Comet 当前标签页的网址。其他浏览器只按应用和窗口标题记录 |
+| 通知 | 休息提醒、时段结束提醒、拦截的通知模式 |
 
-To start Weft automatically, turn on **Launch Weft at login** in **Settings → General**. To update, download the new DMG and replace the app. Your history and permissions carry over.
+想开机自启，在**设置 → 通用**里打开**登录时启动 Weft**。要更新就下载新的 DMG 覆盖安装，历史记录和权限都会保留。
 
-### Building from source
+### 从源码编译
 
-Install [Xcode](https://apps.apple.com/app/xcode/id497799835) and [Homebrew](https://brew.sh), then run:
+先装好 [Xcode](https://apps.apple.com/app/xcode/id497799835) 和 [Homebrew](https://brew.sh)，然后：
 
 ```sh
 brew install xcodegen
-git clone https://github.com/tiann/weft.git
-cd weft
+git clone <本仓库地址> weft-zh
+cd weft-zh
 xcodegen generate
 xcodebuild -project Weft.xcodeproj -scheme Weft -derivedDataPath build/DerivedData build
 open build/DerivedData/Build/Products/Debug/Weft.app
 ```
 
-Your own builds aren't signed with a developer certificate, so macOS treats each one as a new app and drops its Accessibility permission. Grant it again in **System Settings → Privacy & Security → Accessibility**. Alternatively, sign with your own identity: copy `Config/Local.xcconfig.example` to `Config/Local.xcconfig` and fill it in.
+自己编译的版本没有开发者证书签名，macOS 每次都会当它是个新应用，从而丢掉辅助功能授权，需要到**系统设置 → 隐私与安全性 → 辅助功能**里重新授权。也可以用你自己的签名：把 `Config/Local.xcconfig.example` 复制成 `Config/Local.xcconfig` 并填好。
 
-## Shortcuts and automation
+## 快捷指令与自动化
 
-Control Weft from Raycast, Alfred, Shortcuts or a script by opening these links:
+用 Raycast、Alfred、快捷指令或脚本打开下面这些链接，就能控制 Weft：
 
-| Link | Does |
+| 链接 | 作用 |
 | --- | --- |
-| `weft://focus?minutes=50` | Start a focus session (leave out `minutes` to use your default) |
-| `weft://meeting`, `weft://break` | Start a meeting or a break; both also accept `minutes` |
-| `weft://stop` | End the current session |
-| `weft://pause`, `weft://resume` | Pause or resume tracking |
-| `weft://dashboard` | Open today in the main window |
+| `weft://focus?minutes=50` | 开始专注时段（不写 `minutes` 就用默认时长） |
+| `weft://meeting`、`weft://break` | 开始会议或休息，同样支持 `minutes` |
+| `weft://stop` | 结束当前时段 |
+| `weft://pause`、`weft://resume` | 暂停或继续追踪 |
+| `weft://dashboard` | 在主窗口里打开今天 |
 
-For example, `open "weft://focus?minutes=25"` in Terminal.
+例如在终端里执行 `open "weft://focus?minutes=25"`。
 
-## Troubleshooting
+## 常见问题
 
-**Lots of entries are "Uncategorized".** Apple Intelligence is probably off or still downloading. Turn it on in System Settings, then open **Review** and click **Retry**. You can also categorize entries yourself from the log.
+**很多记录都是「未分类」。** 多半是 Apple 智能没开或还在下载。到系统设置里打开，然后进**待确认**点**重试**。也可以在记录里自己手动归类。
 
-**Time I spent reading is missing.** Weft treats you as away after 5 minutes without keyboard or mouse input. If you often read or think for longer stretches, raise the threshold in **Settings → Tracking**.
+**我读文档的时间没被记上。** 没有键盘鼠标输入超过 5 分钟，Weft 就会当作你离开了。如果你经常长时间阅读或思考，去**设置 → 追踪**把这个阈值调大。
 
-## Contributing
+## 参与贡献
 
-Bug reports and pull requests are welcome. [AGENTS.md](AGENTS.md) covers the architecture, build commands and how to run the tests.
+欢迎提 bug 和 PR。项目结构、构建命令和测试方法见 [AGENTS.md](AGENTS.md)。

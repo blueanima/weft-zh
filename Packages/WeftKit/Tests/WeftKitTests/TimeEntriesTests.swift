@@ -75,7 +75,7 @@ struct TimeEntriesTests {
         ])
         #expect(entries[0].facts.contains("- Pull request #12\n"))
         #expect(entries[0].titles == ["Pull request #12", "build-server"])
-        #expect(entries[0].fallbackDescription == "Google Chrome and iTerm2")
+        #expect(entries[0].fallbackDescription == "Google Chrome 和 iTerm2")
     }
 
     @Test func streamsCompleteHalfAnHourAfterTheirLastActivity() {

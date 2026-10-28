@@ -66,9 +66,9 @@ struct BreakOverlayView: View {
                 Image(systemName: "cup.and.saucer.fill")
                     .font(.system(size: 56))
                     .foregroundStyle(.white.opacity(0.9))
-                Text("Take your break!")
+                Text("休息一下！")
                     .font(.system(size: 40, weight: .bold, design: .rounded))
-                Text("Stand up, stretch, look at something far away.")
+                Text("站起来、伸展一下，看看远处。")
                     .font(.title3)
                     .foregroundStyle(.secondary)
                 if let session = model.sessions.active {
@@ -77,8 +77,8 @@ struct BreakOverlayView: View {
                         .monospacedDigit()
                 }
                 HStack(spacing: 16) {
-                    Button("Extend 5 min") { model.sessions.extend(minutes: 5) }
-                    Button("End Break") { model.sessions.stop() }
+                    Button("延长 5 分钟") { model.sessions.extend(minutes: 5) }
+                    Button("结束休息") { model.sessions.stop() }
                         .keyboardShortcut(.defaultAction)
                 }
                 .controlSize(.extraLarge)
@@ -101,23 +101,23 @@ struct BlockerOverlayView: View {
                 VStack(spacing: 16) {
                     Image(nsImage: AppIcons.icon(for: incident.context.bundleID))
                         .resizable().frame(width: 56, height: 56)
-                    Text("Getting distracted?")
+                    Text("分心了？")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
-                    Text("**\(incident.displayName)** is categorized as **\(incident.category.name)**.")
+                    Text("**\(incident.displayName)** 被归入 **\(incident.category.name)**。")
                         .foregroundStyle(.secondary)
                     if let session = model.sessions.active {
-                        Text("\(Format.countdown(session.remaining(at: model.sessions.now))) left in your focus session.")
+                        Text("专注时段还剩 \(Format.countdown(session.remaining(at: model.sessions.now)))。")
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
-                    Button("Back to Work") { model.distractionGuard.backToWork() }
+                    Button("回到工作") { model.distractionGuard.backToWork() }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .keyboardShortcut(.defaultAction)
                     HStack(spacing: 16) {
-                        Button("This is not a distraction") { model.distractionGuard.notADistraction() }
-                        Button("Disable for this session") { model.distractionGuard.disableForSession() }
-                        Button("Continue anyway") { model.distractionGuard.ignore() }
+                        Button("这不算分心") { model.distractionGuard.notADistraction() }
+                        Button("本次时段内关闭拦截") { model.distractionGuard.disableForSession() }
+                        Button("仍然继续") { model.distractionGuard.ignore() }
                     }
                     .buttonStyle(.link)
                     .font(.callout)

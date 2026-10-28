@@ -30,8 +30,8 @@ public final class BreakReminder {
         let due = nextReminder ?? streakStart.addingTimeInterval(TimeInterval(preferences.breakReminderMinutes * 60))
         guard sample.date >= due else { return }
         let minutes = Int(sample.date.timeIntervalSince(streakStart) / 60)
-        notifier.post(.breakReminder, title: "Time for a break",
-                      body: "You've been working for \(minutes) minutes without a pause.")
+        notifier.post(.breakReminder, title: "该休息了",
+                      body: "你已经连续工作 \(minutes) 分钟没有休息了。")
         snooze(from: sample.date)
     }
 
@@ -81,17 +81,17 @@ public final class WorkHoursMonitor {
         let target = preferences.workHoursTarget * 3600
         if !notifiedTarget, worked >= target {
             notifiedTarget = true
-            notifier.post(.workHours, title: "Work hours target reached",
-                          body: "You've tracked \(Self.format(worked)) today. Consider wrapping up.")
+            notifier.post(.workHours, title: "已达成工作时长目标",
+                          body: "今天已记录 \(Self.format(worked))，可以考虑收尾了。")
         } else if !notifiedOvertime, worked >= target + 3600 {
             notifiedOvertime = true
-            notifier.post(.workHours, title: "You're overworking",
-                          body: "\(Self.format(worked)) tracked today — an hour past your target.")
+            notifier.post(.workHours, title: "工作时间过长了",
+                          body: "今天已记录 \(Self.format(worked))，已超出目标一小时。")
         }
     }
 
     private static func format(_ interval: TimeInterval) -> String {
         let minutes = Int(interval / 60)
-        return "\(minutes / 60)h \(minutes % 60)m"
+        return "\(minutes / 60) 小时 \(minutes % 60) 分"
     }
 }

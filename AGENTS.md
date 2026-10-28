@@ -2,6 +2,8 @@
 
 Guidance for coding agents working in this repository.
 
+> **中文分支说明**：本仓库是 [tiann/weft](https://github.com/tiann/weft) 的简体中文版。界面文案直接以中文写死在 Swift 源码里，没有使用 `Localizable.strings` / String Catalog，所以新增或修改文案时直接写中文即可，不需要改本地化表。`project.yml` 里 `CFBundleLocalizations` 只声明了 `zh-Hans`，`Locale.weftUI`（见 `App/Support/Helpers.swift`）统一控制日期与数字格式。升级已有数据库时，`ClassificationService.seedCategoriesIfNeeded` 会把仍是英文默认名（`CategoryDefinition.legacyEnglishNames`）的内置分类改成中文，用户改过名字的不动。模型提示词也是中文，`AIClassifier` 里不要退回英文提示，否则摘要会变回英文。
+
 Weft is a local-first macOS (26+) menu bar time tracker written in Swift 6 / SwiftUI / SwiftData. It classifies activity with rules plus Apple's on-device Foundation Models; nothing leaves the Mac.
 
 ## Commands

@@ -44,6 +44,19 @@ struct ClassificationServiceTests {
         #expect(service.category("social_media").blockInFocus)
     }
 
+    /// 从英文版升级上来时，还挂着英文默认名的分类要变成中文，用户改过名的保持不变。
+    @Test func migratesLegacyEnglishCategoryNames() throws {
+        let code = CategoryDefinition(key: "code", name: "Code", colorHex: "#4F7CFF", isFocusTime: true, hint: "IDEs")
+        context.insert(CategoryRecord(code, sortOrder: 0))
+        let renamed = CategoryDefinition(key: "email", name: "收件箱", colorHex: "#5C6BC0", hint: "Mail clients")
+        context.insert(CategoryRecord(renamed, sortOrder: 1))
+        try context.save()
+
+        let service = ClassificationService(modelContext: context, ai: FakeAI(answer: .init(categoryKey: "code", confidence: .high)))
+        #expect(service.category("code").name == "代码")
+        #expect(service.category("email").name == "收件箱")
+    }
+
     @Test func unknownAppGoesToAIAndBackfillsPendingSegments() async {
         let ai = FakeAI(answer: .init(categoryKey: "design", confidence: .high))
         let service = ClassificationService(modelContext: context, ai: ai)

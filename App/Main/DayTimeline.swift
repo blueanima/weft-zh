@@ -42,8 +42,8 @@ struct DayTimeline: View {
 
         return VStack(alignment: .leading, spacing: 10) {
             if entries.isEmpty {
-                ContentUnavailableView("No work streams yet", systemImage: "calendar.day.timeline.left",
-                                       description: Text("Streams appear once you've spent 10 minutes or more on something."))
+                ContentUnavailableView("还没有工作流", systemImage: "calendar.day.timeline.left",
+                                       description: Text("在某个任务上累计投入 10 分钟以上，这里就会出现对应的工作流。"))
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
                 ZStack(alignment: .topLeading) {
@@ -84,8 +84,8 @@ struct DayTimeline: View {
             }
             if hidden > 0 {
                 HStack(spacing: 4) {
-                    Text("\(hidden) short stream\(hidden == 1 ? "" : "s") under 10 minutes not shown.")
-                    Button("Show in Log", action: showLog).buttonStyle(.link)
+                    Text("另有 \(hidden) 段不足 10 分钟的工作流未显示。")
+                    Button("在记录中查看", action: showLog).buttonStyle(.link)
                 }
                 .font(.caption).foregroundStyle(.tertiary)
                 .padding(.leading, timeColumn + spacing)
@@ -217,7 +217,7 @@ struct DayTimeline: View {
                         hourLine(date).offset(y: scale.y(date) - 6)
                     }
                 case .gap(let interval):
-                    Text("No activity · \(Format.duration(interval.duration))")
+                    Text("无活动 · \(Format.duration(interval.duration))")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -344,7 +344,7 @@ private struct StreamView: View {
     }
 
     private var timeLabel: String {
-        let end = isLive ? "now" : entry.end.formatted(date: .omitted, time: .shortened)
+        let end = isLive ? "现在" : entry.end.formatted(date: .omitted, time: .shortened)
         return "\(entry.start.formatted(date: .omitted, time: .shortened))–\(end) · \(Format.duration(entry.activeTime))"
     }
 
@@ -364,7 +364,7 @@ private struct StreamDetail: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(text).font(.headline).fixedSize(horizontal: false, vertical: true)
             HStack {
-                Text("\(entry.start.formatted(date: .omitted, time: .shortened)) – \(entry.end.formatted(date: .omitted, time: .shortened)) · \(Format.duration(entry.activeTime)) active")
+                Text("\(entry.start.formatted(date: .omitted, time: .shortened)) – \(entry.end.formatted(date: .omitted, time: .shortened)) · 活跃 \(Format.duration(entry.activeTime))")
                     .foregroundStyle(.secondary)
                 Spacer()
                 // Fixes this stream only; rules for an app or site live in the log.
@@ -379,7 +379,7 @@ private struct StreamDetail: View {
                 }
                 .menuStyle(.borderlessButton)
                 .fixedSize()
-                .help("Change the category of this stream")
+                .help("修改这个工作流的分类")
             }
             .font(.callout)
             Divider()
@@ -434,6 +434,6 @@ private struct SessionBlockView: View {
                 }
             }
         }
-        .help("\(session.kind.title) session · \(Format.duration(session.end.timeIntervalSince(session.start)))")
+        .help("\(session.kind.title)时段 · \(Format.duration(session.end.timeIntervalSince(session.start)))")
     }
 }

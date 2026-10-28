@@ -33,12 +33,12 @@ struct ReviewView: View {
             statusBar
             Divider()
             if items.isEmpty {
-                ContentUnavailableView("Nothing to review", systemImage: "checkmark.circle",
-                                       description: Text("Every app and site from the last 30 days is covered by a rule."))
+                ContentUnavailableView("没有待确认的内容", systemImage: "checkmark.circle",
+                                       description: Text("最近 30 天的应用和网站都已有规则覆盖。"))
                     .frame(maxHeight: .infinity)
             } else {
                 Table(items) {
-                    TableColumn("App / Site") { item in
+                    TableColumn("应用 / 网站") { item in
                         HStack {
                             Image(nsImage: AppIcons.icon(for: item.sample.bundleID)).resizable().frame(width: 16, height: 16)
                             VStack(alignment: .leading) {
@@ -49,18 +49,18 @@ struct ReviewView: View {
                             }
                         }
                     }
-                    TableColumn("Time (30 days)") { item in
+                    TableColumn("时长（30 天）") { item in
                         Text(Format.duration(item.duration)).monospacedDigit()
                     }
                     .width(110)
-                    TableColumn("Status") { item in
+                    TableColumn("状态") { item in
                         switch item.source {
-                        case .pending: Label("Waiting", systemImage: "hourglass").foregroundStyle(.secondary)
-                        default: Text("AI · \(item.confidence?.rawValue ?? "?") confidence").foregroundStyle(.secondary)
+                        case .pending: Label("等待中", systemImage: "hourglass").foregroundStyle(.secondary)
+                        default: Text("AI · \(item.confidence?.rawValue ?? "?") 置信度").foregroundStyle(.secondary)
                         }
                     }
                     .width(160)
-                    TableColumn("Category") { item in
+                    TableColumn("分类") { item in
                         Picker("", selection: Binding(
                             get: { item.categoryKey },
                             set: { assign(item, to: $0) }
@@ -80,23 +80,23 @@ struct ReviewView: View {
                         }
                         .buttonStyle(.borderless)
                         .disabled(item.source == .pending)
-                        .help("Looks right — keep \(model.classifier.category(item.categoryKey).name) for this app/site")
+                        .help("确认无误——这个应用/网站保持「\(model.classifier.category(item.categoryKey).name)」")
                     }
                     .width(30)
                 }
             }
         }
-        .navigationTitle("Review")
+        .navigationTitle("待确认")
         .toolbar {
             let confident = items.filter { $0.source == .ai && $0.confidence == .high }
             Button {
                 for item in confident { assign(item, to: item.categoryKey) }
             } label: {
-                Label("Confirm \(confident.count) High-Confidence", systemImage: "checkmark.circle")
+                Label("确认 \(confident.count) 个高置信度项", systemImage: "checkmark.circle")
                     .labelStyle(.titleAndIcon)
             }
             .disabled(confident.isEmpty)
-            .help("Keep the model's category for every app and site it was sure about")
+            .help("对模型有把握的应用和网站，保留它给出的分类")
         }
     }
 
@@ -106,17 +106,17 @@ struct ReviewView: View {
             case .available:
                 Image(systemName: "sparkles")
                 Text(model.classifier.queuedCount > 0
-                     ? "Classifying \(model.classifier.queuedCount) app(s)/site(s) on device…"
-                     : "On-device classification is on.")
+                     ? "正在设备端分类 \(model.classifier.queuedCount) 个应用/网站…"
+                     : "设备端分类已开启。")
                 if model.classifier.queuedCount > 0 { ProgressView().controlSize(.small) }
             case .unavailable(let reason):
                 Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
                 Text(reason)
-                Button("Open Settings") { SystemSettings.openAppleIntelligence() }
+                Button("打开设置") { SystemSettings.openAppleIntelligence() }
             }
             Spacer()
-            Button("Retry") { model.classifier.retryPending() }
-                .help("Ask the model again about everything still waiting")
+            Button("重试") { model.classifier.retryPending() }
+                .help("对仍在等待的所有项目重新请求模型")
         }
         .font(.callout)
         .padding(12)

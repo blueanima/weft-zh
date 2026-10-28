@@ -30,7 +30,7 @@ public final class DistractionGuard {
     @ObservationIgnored private let notifier: any NotificationPosting
     @ObservationIgnored private var dwell: (key: String, since: Date)?
     @ObservationIgnored private var triggeredKey: String?
-    /// Where "Back to Work" returns to.
+    /// Where "回到工作" returns to.
     @ObservationIgnored private var lastWorkBundleID: String?
 
     public init(preferences: Preferences, sessions: SessionEngine, notifier: any NotificationPosting) {
@@ -79,8 +79,8 @@ public final class DistractionGuard {
         case .overlay:
             self.incident = incident
         case .notification:
-            notifier.post(.distraction, title: "Getting distracted?",
-                          body: "\(incident.displayName) is \(category.name). You're in a focus session.")
+            notifier.post(.distraction, title: "分心了？",
+                          body: "\(incident.displayName) 属于\(category.name)。你正在专注时段中。")
         }
     }
 

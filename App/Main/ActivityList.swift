@@ -16,11 +16,11 @@ struct ActivityList: View {
         let categories = Set(all.map(\.first.categoryKey)).map(model.classifier.category).sorted { $0.name < $1.name }
         LazyVStack(alignment: .leading, spacing: 0) {
             HStack {
-                TextField("Filter by app, site or title", text: $search)
+                TextField("按应用、网站或标题筛选", text: $search)
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 280)
-                Picker("Category", selection: $category) {
-                    Text("All categories").tag(String?.none)
+                Picker("分类", selection: $category) {
+                    Text("全部分类").tag(String?.none)
                     Divider()
                     ForEach(categories) { Text($0.name).tag(Optional($0.key)) }
                 }
@@ -28,19 +28,19 @@ struct ActivityList: View {
                 .fixedSize()
                 Spacer()
                 if groups.count != all.count {
-                    Text("\(groups.count) of \(all.count)").font(.caption).foregroundStyle(.secondary)
+                    Text("\(groups.count) / \(all.count) 条").font(.caption).foregroundStyle(.secondary)
                 }
             }
             .padding(.bottom, 8)
             if groups.isEmpty {
-                Text("Nothing matches.").foregroundStyle(.secondary).padding(.vertical, 12)
+                Text("没有匹配的记录。").foregroundStyle(.secondary).padding(.vertical, 12)
             }
             ForEach(visible) { group in
                 ActivityRow(group: group)
                 Divider()
             }
             if groups.count > visible.count {
-                Button("Show all \(groups.count) entries") { showAll = true }
+                Button("显示全部 \(groups.count) 条") { showAll = true }
                     .buttonStyle(.link)
                     .padding(.top, 8)
             }
@@ -80,10 +80,10 @@ private struct ActivityRow: View {
                 }
                 if !group.interruptions.isEmpty {
                     let names = group.interruptionNames
-                    Label("\(group.interruptions.count) brief switch\(group.interruptions.count == 1 ? "" : "es") · \(names.prefix(3).joined(separator: ", "))\(names.count > 3 ? "…" : "")",
+                    Label("\(group.interruptions.count) 次短暂切换 · \(names.prefix(3).joined(separator: "、"))\(names.count > 3 ? "…" : "")",
                           systemImage: "arrow.triangle.branch")
                         .font(.caption2).foregroundStyle(.tertiary).lineLimit(1)
-                        .help("Short visits folded into this entry:\n" + names.joined(separator: "\n"))
+                        .help("已并入这条记录的短暂访问：\n" + names.joined(separator: "\n"))
                 }
             }
             Spacer()
@@ -114,7 +114,7 @@ struct CategoryMenu: View {
         HStack(spacing: 4) {
             Circle().fill(category.color).frame(width: 8, height: 8)
             Menu {
-                Menu("Always for \(target)") {
+                Menu("始终如此：\(target)") {
                     categoryButtons { key in
                         if let domain = group.first.domain {
                             model.classifier.addRule(field: .domain, pattern: domain, categoryKey: key)
@@ -123,7 +123,7 @@ struct CategoryMenu: View {
                         }
                     }
                 }
-                Menu("Only this entry") {
+                Menu("只改这一条") {
                     categoryButtons { key in
                         for segment in group.segments { model.classifier.setManualCategory(key, for: segment) }
                     }
@@ -134,7 +134,7 @@ struct CategoryMenu: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             if group.first.classificationSource == .pending {
-                Image(systemName: "sparkles").foregroundStyle(.secondary).help("Waiting for on-device classification")
+                Image(systemName: "sparkles").foregroundStyle(.secondary).help("等待设备端分类")
             }
         }
     }
