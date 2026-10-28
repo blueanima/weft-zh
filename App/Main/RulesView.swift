@@ -48,7 +48,7 @@ struct RulesView: View {
             } header: {
                 Text("你的规则")
             } footer: {
-                Text("你的规则优先于 \(BuiltinRules.all.count) 条内置规则。越具体的匹配优先级越高：标题和网址高于域名，域名高于应用。没有规则匹配的活动交给设备端模型分类。")
+                Text("你的规则优先于 \(BuiltinRules.all.count) 条内置规则。越具体的匹配优先级越高：标题和网址高于域名，域名高于应用。没有规则匹配的活动交给 AI 分类。")
                     .font(.callout).foregroundStyle(.secondary)
             }
         }

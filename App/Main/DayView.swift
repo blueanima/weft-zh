@@ -315,7 +315,7 @@ private struct DailyReview: View {
     var body: some View {
         if text == nil, case .unavailable(let reason) = model.classifier.aiAvailability {
             // Nothing to act on here, so keep it out of the way.
-            Label("每日回顾需要 Apple 智能。\(reason)", systemImage: "sparkles")
+            Label("每日回顾需要开启 AI 引擎。\(reason)", systemImage: "sparkles")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 4)
@@ -331,7 +331,7 @@ private struct DailyReview: View {
                 if let text {
                     Text(text).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Text("在设备端生成这一天的简短回顾，并给出一个明天的建议。")
+                    Text("生成这一天的简短回顾，并给出一个明天的建议。")
                         .foregroundStyle(.secondary)
                 }
                 if let error {

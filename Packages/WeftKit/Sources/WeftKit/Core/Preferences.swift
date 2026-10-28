@@ -42,7 +42,30 @@ public final class Preferences {
     /// Classification keys the user marked as "not a distraction".
     public var blockerAllowList: [String] { didSet { save(blockerAllowList, "blockerAllowList") } }
 
+    // AI engine
+    public var aiProvider: AIProvider { didSet { save(aiProvider.rawValue, "aiProvider") } }
+    public var deepSeekModel: String { didSet { save(deepSeekModel, "deepSeekModel") } }
+    public var deepSeekBaseURL: String { didSet { save(deepSeekBaseURL, "deepSeekBaseURL") } }
+    public var deepSeekThinking: Bool { didSet { save(deepSeekThinking, "deepSeekThinking") } }
+    /// Kept in the Keychain rather than UserDefaults; the setter writes through.
+    public var deepSeekAPIKey: String { didSet { Keychain.set(deepSeekAPIKey, for: Self.deepSeekKeyAccount) } }
+
     public var hasCompletedOnboarding: Bool { didSet { save(hasCompletedOnboarding, "hasCompletedOnboarding") } }
+
+    private static let deepSeekKeyAccount = "deepseek.apiKey"
+
+    /// Snapshot handed to the classifier, which runs off the main actor.
+    public var aiSettings: AISettings {
+        AISettings(
+            provider: aiProvider,
+            deepSeek: DeepSeekConfig(
+                apiKey: deepSeekAPIKey,
+                baseURL: deepSeekBaseURL,
+                model: deepSeekModel,
+                thinking: deepSeekThinking
+            )
+        )
+    }
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -60,6 +83,9 @@ public final class Preferences {
             "blockerEnabled": true,
             "blockerStyle": BlockerStyle.overlay.rawValue,
             "refocusThresholdSeconds": 10,
+            "aiProvider": AIProvider.deepSeek.rawValue,
+            "deepSeekModel": DeepSeekConfig.defaultModel,
+            "deepSeekBaseURL": DeepSeekConfig.defaultBaseURL,
         ])
         trackingPaused = defaults.bool(forKey: "trackingPaused")
         idleThresholdMinutes = defaults.integer(forKey: "idleThresholdMinutes")
@@ -80,6 +106,11 @@ public final class Preferences {
         blockerStyle = BlockerStyle(rawValue: defaults.string(forKey: "blockerStyle") ?? "") ?? .overlay
         refocusThresholdSeconds = defaults.integer(forKey: "refocusThresholdSeconds")
         blockerAllowList = defaults.stringArray(forKey: "blockerAllowList") ?? []
+        aiProvider = AIProvider(rawValue: defaults.string(forKey: "aiProvider") ?? "") ?? .deepSeek
+        deepSeekModel = defaults.string(forKey: "deepSeekModel") ?? DeepSeekConfig.defaultModel
+        deepSeekBaseURL = defaults.string(forKey: "deepSeekBaseURL") ?? DeepSeekConfig.defaultBaseURL
+        deepSeekThinking = defaults.bool(forKey: "deepSeekThinking")
+        deepSeekAPIKey = Keychain.string(for: Self.deepSeekKeyAccount) ?? ""
         hasCompletedOnboarding = defaults.bool(forKey: "hasCompletedOnboarding")
     }
 

@@ -17,7 +17,7 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 bullet("record.circle", "记录前台应用、窗口标题和浏览器网址——不截屏，不记录按键。")
-                bullet("sparkles", "陌生的应用和网站由 Apple 的设备端模型分类，不会上传任何内容。")
+                bullet("sparkles", "陌生的应用和网站交给 AI 分类：可选用 DeepSeek 云端，或留在本机的 Apple 智能。")
                 bullet("scope", "从菜单栏开始专注、会议或休息时段。")
             }
 
@@ -31,12 +31,14 @@ struct OnboardingView: View {
                 LabeledContent {
                     switch model.classifier.aiAvailability {
                     case .available: Label("可用", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                    case .unavailable: Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                    case .unavailable where model.preferences.aiProvider == .apple:
+                        Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                    case .unavailable: Text("未配置").foregroundStyle(.secondary)
                     }
                 } label: {
-                    Text("Apple 智能")
+                    Text("AI 引擎")
                     switch model.classifier.aiAvailability {
-                    case .available: Text("已就绪，可进行设备端分类。")
+                    case .available: Text("\(model.preferences.aiProvider.title) 已就绪。")
                     case .unavailable(let reason): Text("\(reason)内置规则仍然可用。")
                     }
                 }

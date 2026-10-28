@@ -139,7 +139,7 @@ private struct CategoryEditor: View {
             ), supportsOpacity: false)
             TextField("描述", text: $draft.hint, prompt: Text("这类包含什么"), axis: .vertical)
                 .lineLimit(2...4)
-            Text("这段描述会帮助设备端模型判断哪些活动归入此分类。")
+            Text("这段描述会帮助 AI 判断哪些活动归入此分类。")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
                 Spacer()

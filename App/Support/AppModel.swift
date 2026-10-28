@@ -34,8 +34,8 @@ enum Page: String, CaseIterable, Identifiable {
 @Observable
 final class AppModel {
     let container: ModelContainer
-    let preferences = Preferences()
-    let ai = FoundationModelsClassifier()
+    let preferences: Preferences
+    let ai: AICoordinator
     let classifier: ClassificationService
     let tracker: ActivityTracker
     let sessions: SessionEngine
@@ -55,6 +55,9 @@ final class AppModel {
     @ObservationIgnored private let overlays = OverlayController()
 
     init() {
+        let preferences = Preferences()
+        self.preferences = preferences
+        ai = AICoordinator(settings: preferences.aiSettings)
         do {
             container = try WeftSchema.makeContainer()
         } catch {
@@ -149,6 +152,12 @@ final class AppModel {
     func refreshPermissions() {
         accessibilityGranted = SystemProbe.isAccessibilityTrusted
         tracker.requestSample(after: 0)
+        applyAISettings()
+    }
+
+    /// Called after the AI engine, key or model changed in Settings.
+    func applyAISettings() {
+        ai.update(preferences.aiSettings)
         classifier.refreshAvailability()
     }
 }

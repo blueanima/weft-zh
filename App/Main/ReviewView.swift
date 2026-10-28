@@ -106,13 +106,15 @@ struct ReviewView: View {
             case .available:
                 Image(systemName: "sparkles")
                 Text(model.classifier.queuedCount > 0
-                     ? "正在设备端分类 \(model.classifier.queuedCount) 个应用/网站…"
-                     : "设备端分类已开启。")
+                     ? "正在用 \(model.preferences.aiProvider.title) 分类 \(model.classifier.queuedCount) 个应用/网站…"
+                     : "\(model.preferences.aiProvider.title) 分类已开启。")
                 if model.classifier.queuedCount > 0 { ProgressView().controlSize(.small) }
             case .unavailable(let reason):
                 Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
                 Text(reason)
-                Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                if model.preferences.aiProvider == .apple {
+                    Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                }
             }
             Spacer()
             Button("重试") { model.classifier.retryPending() }

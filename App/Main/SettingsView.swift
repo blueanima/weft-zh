@@ -10,6 +10,7 @@ struct SettingsView: View {
     var body: some View {
         TabView {
             Tab("通用", systemImage: "gearshape") { GeneralSettings() }
+            Tab("AI", systemImage: "sparkles") { AISettingsPane() }
             Tab("追踪", systemImage: "record.circle") { TrackingSettings() }
             Tab("时段", systemImage: "timer") { SessionSettings() }
             Tab("拦截", systemImage: "hand.raised") { BlockerSettings() }
@@ -59,12 +60,14 @@ private struct GeneralSettings: View {
                 LabeledContent {
                     switch model.classifier.aiAvailability {
                     case .available: Label("可用", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
-                    case .unavailable: Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                    case .unavailable where model.preferences.aiProvider == .apple:
+                        Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                    case .unavailable: Text("未启用").foregroundStyle(.secondary)
                     }
                 } label: {
-                    Text("Apple 智能")
+                    Text("AI 引擎")
                     switch model.classifier.aiAvailability {
-                    case .available: Text("陌生的应用和网站会在设备端完成分类。")
+                    case .available: Text("当前用 \(model.preferences.aiProvider.title) 分类和写摘要，可在「AI」页签切换。")
                     case .unavailable(let reason): Text(reason)
                     }
                 }
@@ -90,6 +93,159 @@ struct PermissionRow: View {
         } label: {
             Text(title)
             Text(detail)
+        }
+    }
+}
+
+// MARK: - AI
+
+private struct AISettingsPane: View {
+    @Environment(AppModel.self) private var model
+    @State private var keyDraft = ""
+    @State private var status: String?
+    @State private var models: [String] = []
+    @State private var busy = false
+
+    var body: some View {
+        @Bindable var prefs = model.preferences
+        Form {
+            Section {
+                Picker("引擎", selection: $prefs.aiProvider) {
+                    ForEach(AIProvider.allCases) { provider in
+                        Text(provider.title).tag(provider)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                Text(prefs.aiProvider.detail).font(.callout).foregroundStyle(.secondary)
+            } header: {
+                Text("分类与摘要由谁来做")
+            } footer: {
+                Text("选 DeepSeek 时，应用名、窗口标题和网址会发送到 api.deepseek.com；选 Apple 智能则全部在本机完成。内置规则和已有分类缓存不受影响。")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+
+            if prefs.aiProvider == .deepSeek {
+                Section {
+                    SecureField("API Key", text: $keyDraft, prompt: Text("sk-…"))
+                        .onSubmit(saveKey)
+                    HStack {
+                        Button("保存 Key", action: saveKey)
+                        Text(prefs.deepSeekAPIKey.isEmpty ? "尚未保存" : "已存入钥匙串")
+                            .font(.caption)
+                            .foregroundStyle(prefs.deepSeekAPIKey.isEmpty ? .orange : .secondary)
+                        Spacer()
+                        Button("清除") {
+                            keyDraft = ""
+                            saveKey()
+                        }
+                        .disabled(prefs.deepSeekAPIKey.isEmpty)
+                    }
+                    TextField("模型", text: $prefs.deepSeekModel, prompt: Text(DeepSeekConfig.defaultModel))
+                    TextField("接口地址", text: $prefs.deepSeekBaseURL, prompt: Text(DeepSeekConfig.defaultBaseURL))
+                    if models.count > 1 {
+                        Picker("这个 Key 可用的模型", selection: $prefs.deepSeekModel) {
+                            ForEach(models, id: \.self) { Text($0).tag($0) }
+                        }
+                    }
+                    Toggle("思考模式", isOn: $prefs.deepSeekThinking)
+                } header: {
+                    Text("DeepSeek")
+                } footer: {
+                    Text("分类和一句话摘要都属于短任务，关掉思考模式更快也更省。改成自己的网关地址也可以，例如 https://your-proxy/v1。")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+
+                Section {
+                    HStack(spacing: 12) {
+                        Button("测试连接") { Task { await ping() } }
+                            .disabled(busy)
+                        Button("获取模型列表") { Task { await fetchModels() } }
+                            .disabled(busy)
+                        if busy { ProgressView().controlSize(.small) }
+                    }
+                    if let status {
+                        Text(status).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
+                    }
+                }
+            }
+
+            if prefs.aiProvider == .apple {
+                Section("Apple 智能") {
+                    LabeledContent {
+                        switch model.classifier.aiAvailability {
+                        case .available:
+                            Label("可用", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                        case .unavailable:
+                            Button("打开设置") { SystemSettings.openAppleIntelligence() }
+                        }
+                    } label: {
+                        Text("状态")
+                        switch model.classifier.aiAvailability {
+                        case .available: Text("陌生的应用和网站会在设备端完成分类。")
+                        case .unavailable(let reason): Text(reason)
+                        }
+                    }
+                }
+            }
+
+            Section("当前状态") {
+                LabeledContent("可用性") {
+                    switch model.classifier.aiAvailability {
+                    case .available:
+                        Label("可用", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    case .unavailable(let reason):
+                        Text(reason).foregroundStyle(.secondary)
+                    }
+                }
+                if model.classifier.queuedCount > 0 {
+                    LabeledContent("排队分类", value: "\(model.classifier.queuedCount) 个应用/网站")
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear { keyDraft = model.preferences.deepSeekAPIKey }
+        .onChange(of: prefs.aiProvider) { model.applyAISettings() }
+        .onChange(of: prefs.aiSettings) { model.ai.update(prefs.aiSettings) }
+    }
+
+    private func saveKey() {
+        let trimmed = keyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        model.preferences.deepSeekAPIKey = trimmed
+        model.applyAISettings()
+        status = trimmed.isEmpty ? "已清除 API Key。" : "API Key 已保存到钥匙串。"
+    }
+
+    private func ping() async {
+        saveKey()
+        guard model.ai.deepSeek.availability() == .available else {
+            status = "先填写 API Key。"
+            return
+        }
+        busy = true
+        defer { busy = false }
+        do {
+            let reply = try await model.ai.deepSeek.ping()
+            status = "连接正常，回复：\(reply.prefix(20))"
+            model.classifier.refreshAvailability()
+        } catch {
+            status = "连接失败：\(error.localizedDescription)"
+        }
+    }
+
+    private func fetchModels() async {
+        saveKey()
+        guard model.ai.deepSeek.availability() == .available else {
+            status = "先填写 API Key。"
+            return
+        }
+        busy = true
+        defer { busy = false }
+        do {
+            models = try await model.ai.deepSeek.listModels()
+            status = models.isEmpty ? "没有拿到模型列表。" : "可用模型：\(models.joined(separator: "、"))"
+        } catch {
+            status = "获取失败：\(error.localizedDescription)"
         }
     }
 }
