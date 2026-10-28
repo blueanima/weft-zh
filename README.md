@@ -6,7 +6,36 @@ Weft 是一款免费开源的时间追踪工具，常驻在 Mac 的菜单栏。�
 
 Weft 受了 [Rize](https://rize.io) 的启发，但出发点是另一个：人很少一次只做一件事。你写着代码，顺手看一眼文档，回一条消息，再回到代码。所以 Weft 不给你一份「应用切换日志」，而是显示你反复回到的那几条线索。
 
-> 本仓库是 [tiann/weft](https://github.com/tiann/weft) 的简体中文分支，界面、系统通知、分类和模型提示词都已汉化，功能与原版一致。英文说明见 [README.en.md](README.en.md)。
+> 本仓库是 [tiann/weft](https://github.com/tiann/weft) 的简体中文分支：界面全面汉化，并新增 DeepSeek 作为默认 AI 后端。英文说明见 [README.en.md](README.en.md)，与原版的差异见[与原版的区别](#与原版的区别)。
+
+## 界面
+
+**今天** —— 时间线按分类并行展开，每条工作流配一句话摘要。
+
+![今天](docs/screenshots/01-today.jpg)
+
+**报告** —— 一周的记录时长、专注分走势和分类拆解。
+
+![报告](docs/screenshots/02-reports.jpg)
+
+**设置 → AI** —— 默认走 DeepSeek，也可以切回 Apple 设备端模型或直接关闭。
+
+![设置](docs/screenshots/03-deepseek-settings.jpg)
+
+> 以上截图使用演示数据，不含任何真实使用记录。
+
+## 与原版的区别
+
+| | 上游 [tiann/weft](https://github.com/tiann/weft) | 本分支 |
+| --- | --- | --- |
+| 界面语言 | 英文 | 简体中文：菜单栏、主窗口、设置、系统通知、权限弹窗、全屏遮罩 |
+| 日期与时长 | `1h 2m`、`Mon 28 Oct` | `1 小时 2 分`、`10月28日 星期三`，日期按中文习惯渲染 |
+| 内置分类 | 26 个分类，英文名称与说明 | 同一套分类，名称与说明改为中文；已有数据库首次启动时自动迁移 |
+| AI 后端 | 仅 Apple 设备端模型（需要 macOS 26 且已启用 Apple 智能） | **默认 DeepSeek**，可切回 Apple 智能或关闭；三档在设置里随时热切换 |
+| 模型提示词 | 英文 | 中文；分类、一句话摘要、每日回顾均稳定输出中文 |
+| 新增界面 | — | 设置里的 **AI** 页签：Key 存钥匙串、测试连接、拉取可用模型列表、思考模式开关、自定义 OpenAI 兼容端点 |
+
+除了 AI 后端，功能、数据结构和存储位置都与上游一致，可以直接沿用原来的 `~/Library/Application Support/Weft/` 数据库。
 
 ## 为什么用 Weft
 
@@ -50,6 +79,14 @@ Weft 受了 [Rize](https://rize.io) 的启发，但出发点是另一个：人�
 
 DeepSeek 用的是 `deepseek-flash`，短任务默认关掉思考模式（更便宜也更快），也可以自己改模型名和接口地址（兼容 OpenAI 格式的网关都行）。分类结果会缓存在本地，同一个应用或网站一辈子只问一次；每段工作流的摘要和每日回顾才需要持续调用。
 
+配置只要三步：
+
+1. 到 [platform.deepseek.com](https://platform.deepseek.com/api_keys) 建一个 API Key。
+2. 打开**设置 → AI**，粘进 **API Key**，点**保存 Key**（存进 macOS 钥匙串，不写配置文件）。
+3. 点**测试连接**确认通路，再回**待确认**页面点**重试**，把积压的未分类项跑掉。
+
+日常用量很低：分类是一次性的，之后只有工作流摘要和每日回顾会调用，一天几毛钱的量级。
+
 ## 隐私
 
 - **记录什么：** 前台应用、它的窗口标题，以及在支持的浏览器里，当前标签页的网址。
@@ -62,9 +99,11 @@ DeepSeek 用的是 `deepseek-flash`，短任务默认关掉思考模式（更便
 
 需要 **macOS 26 或更新版本**。AI 是可选项，但建议配一个：在**设置 → AI** 里填 DeepSeek API Key，或者打开 Apple 智能。两个都不配也能用：Weft 照样能给已知的应用和网站，以及你自己设过规则的内容分类，其余的会留在「待确认」页面等你处理。
 
-1. 从 [Releases](https://github.com/tiann/weft/releases/latest) 下载最新的 `Weft-<版本>.dmg`（原版仓库的构建包）。
-2. 打开后把 **Weft** 拖进**应用程序**。
-3. 从「应用程序」里打开。它已由 Apple 签名并公证，macOS 不会弹警告。
+本分支暂不提供预编译安装包，请从源码编译（大约两分钟）。上游 Releases 里的 DMG 是英文原版，不含中文界面和 DeepSeek 支持。
+
+1. 按[从源码编译](#从源码编译)生成 `Weft.app`。
+2. 把它拖进「应用程序」。
+3. 首次打开时系统可能提示应用未经公证，右键点图标选「打开」即可，或用自己的开发者证书签名（见下）。
 
 Weft 会出现在菜单栏。首次启动会请求辅助功能权限，其余权限会在第一次用到时再问：
 
@@ -82,7 +121,7 @@ Weft 会出现在菜单栏。首次启动会请求辅助功能权限，其余权
 
 ```sh
 brew install xcodegen
-git clone <本仓库地址> weft-zh
+git clone https://github.com/blueanima/weft-zh.git
 cd weft-zh
 xcodegen generate
 xcodebuild -project Weft.xcodeproj -scheme Weft -derivedDataPath build/DerivedData build
