@@ -12,8 +12,11 @@ struct ReviewView: View {
         let since = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
         let pending = ClassificationSource.pending.rawValue
         let ai = ClassificationSource.ai.rawValue
+        let guessed = ClassificationSource.guess.rawValue
         _segments = Query(filter: #Predicate<ActivitySegment> {
-            $0.end > since && ($0.classificationSourceRaw == pending || $0.classificationSourceRaw == ai)
+            $0.end > since
+                && ($0.classificationSourceRaw == pending || $0.classificationSourceRaw == ai
+                    || $0.classificationSourceRaw == guessed)
         })
     }
 
@@ -56,6 +59,7 @@ struct ReviewView: View {
                     TableColumn("状态") { item in
                         switch item.source {
                         case .pending: Label("等待中", systemImage: "hourglass").foregroundStyle(.secondary)
+                        case .guess: Label("推测", systemImage: "questionmark.circle").foregroundStyle(.orange)
                         default: Text("AI · \(item.confidence?.rawValue ?? "?") 置信度").foregroundStyle(.secondary)
                         }
                     }
@@ -111,7 +115,11 @@ struct ReviewView: View {
                 if model.classifier.queuedCount > 0 { ProgressView().controlSize(.small) }
             case .unavailable(let reason):
                 Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-                Text(reason)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(reason)
+                    Text("标着「推测」的条目是按 App Store 分类和网站名猜的，模型可用后会自动重判。")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 if model.preferences.aiProvider == .apple {
                     Button("打开设置") { SystemSettings.openAppleIntelligence() }
                 }
@@ -136,13 +144,14 @@ struct ReviewView: View {
                                   source: segment.classificationSource, confidence: model.classifier.confidence(forKey: key))
             }
         }
-        // Waiting first, then least confident, then most time spent.
+        // Waiting first, then guesses, then least confident, then most time spent.
         func rank(_ item: Item) -> Int {
             switch (item.source, item.confidence) {
             case (.pending, _): 0
-            case (_, .low?), (_, nil): 1
-            case (_, .medium?): 2
-            case (_, .high?): 3
+            case (.guess, _): 1
+            case (_, .low?), (_, nil): 2
+            case (_, .medium?): 3
+            case (_, .high?): 4
             }
         }
         return byKey.values.sorted { a, b in

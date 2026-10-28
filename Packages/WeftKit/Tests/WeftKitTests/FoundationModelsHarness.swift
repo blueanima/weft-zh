@@ -45,7 +45,7 @@ struct FoundationModelsHarness {
 
     @Test func installedAppsUseAppStoreCategory() async throws {
         let xcodeLike = ActivityContext(bundleID: "com.apple.dt.Xcode", appName: "Xcode")
-        #expect(FoundationModelsClassifier.appStoreCategory(bundleID: xcodeLike.bundleID) == "developer tools")
+        #expect(CategoryGuess.appStoreCategory(bundleID: xcodeLike.bundleID) == "developer-tools")
         let result = try await classifier.classify(xcodeLike, categories: CategoryDefinition.defaults)
         print("[harness] Xcode → \(result.categoryKey) (\(result.confidence.rawValue))")
         #expect(result.categoryKey == "code")

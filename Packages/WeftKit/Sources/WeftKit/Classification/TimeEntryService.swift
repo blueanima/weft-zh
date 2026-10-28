@@ -49,7 +49,8 @@ public final class TimeEntryService {
     }
 
     private func drain() async {
-        let language = Locale.current.localizedString(forLanguageCode: Locale.preferredLanguages.first ?? "en") ?? "English"
+        // 中文版固定输出简体中文，不跟系统语言走。
+        let language = "简体中文"
         while let next = queue.first {
             do {
                 let text = try await ai.describeActivity(next.facts, language: language)

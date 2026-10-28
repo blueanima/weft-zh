@@ -13,8 +13,11 @@ struct MainView: View {
         let since = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
         let pending = ClassificationSource.pending.rawValue
         let ai = ClassificationSource.ai.rawValue
+        let guessed = ClassificationSource.guess.rawValue
         _unconfirmed = Query(filter: #Predicate<ActivitySegment> {
-            $0.end > since && ($0.classificationSourceRaw == pending || $0.classificationSourceRaw == ai)
+            $0.end > since
+                && ($0.classificationSourceRaw == pending || $0.classificationSourceRaw == ai
+                    || $0.classificationSourceRaw == guessed)
         })
     }
 

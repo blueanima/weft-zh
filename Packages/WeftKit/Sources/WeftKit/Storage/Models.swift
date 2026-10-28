@@ -6,10 +6,12 @@ public enum ClassificationSource: String, Codable, Sendable {
     case builtin
     /// Matched a rule the user created.
     case rule
-    /// Classified by the on-device model.
+    /// Classified by the model, on device or remote.
     case ai
-    /// Waiting for the model (or the model is unavailable).
+    /// Waiting for the model.
     case pending
+    /// No model could answer, so `CategoryGuess` picked one; a model replaces it later.
+    case guess
     /// The user changed this one segment by hand; never reclassified automatically.
     case manual
 }

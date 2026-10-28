@@ -133,8 +133,14 @@ struct CategoryMenu: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
-            if group.first.classificationSource == .pending {
-                Image(systemName: "sparkles").foregroundStyle(.secondary).help("等待设备端分类")
+            switch group.first.classificationSource {
+            case .pending:
+                Image(systemName: "hourglass").foregroundStyle(.secondary).help("等待模型分类")
+            case .guess:
+                Image(systemName: "questionmark.circle").foregroundStyle(.orange)
+                    .help("按 App Store 分类和网站名推测，模型可用后会重判")
+            default:
+                EmptyView()
             }
         }
     }

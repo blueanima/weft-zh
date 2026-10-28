@@ -26,8 +26,9 @@ struct RuleEngineTests {
         #expect(engine.match(search)?.categoryKey == "research")
         let gist = ActivityContext(bundleID: "com.apple.Safari", appName: "Safari", url: "https://gist.github.com/x")
         #expect(engine.match(gist)?.categoryKey == "code")
+        // 不是 github.com，也不该被浏览器自己的规则兜住：它要交给模型判。
         let fake = ActivityContext(bundleID: "com.apple.Safari", appName: "Safari", url: "https://notgithub.com/x")
-        #expect(engine.match(fake)?.categoryKey == "browsing")
+        #expect(engine.match(fake) == nil)
     }
 
     @Test func userRulesOverrideBuiltins() {

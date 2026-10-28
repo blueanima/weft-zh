@@ -121,7 +121,7 @@ private struct AISettingsPane: View {
             } header: {
                 Text("分类与摘要由谁来做")
             } footer: {
-                Text("选 DeepSeek 时，应用名、窗口标题和网址会发送到 api.deepseek.com；选 Apple 智能则全部在本机完成。内置规则和已有分类缓存不受影响。")
+                Text("选 DeepSeek 时，应用名、窗口标题和网址会发送到 api.deepseek.com；选 Apple 智能则全部在本机完成。内置规则和已有分类缓存不受影响。没有可用模型时，认不出的应用和网站会先按 App Store 分类和域名推测，在「待确认」里标为「推测」。")
                     .font(.callout).foregroundStyle(.secondary)
             }
 
@@ -206,7 +206,7 @@ private struct AISettingsPane: View {
         .formStyle(.grouped)
         .onAppear { keyDraft = model.preferences.deepSeekAPIKey }
         .onChange(of: prefs.aiProvider) { model.applyAISettings() }
-        .onChange(of: prefs.aiSettings) { model.ai.update(prefs.aiSettings) }
+        .onChange(of: prefs.aiSettings) { model.updateAIModel() }
     }
 
     private func saveKey() {

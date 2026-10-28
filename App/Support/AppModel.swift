@@ -152,11 +152,17 @@ final class AppModel {
     func refreshPermissions() {
         accessibilityGranted = SystemProbe.isAccessibilityTrusted
         tracker.requestSample(after: 0)
-        applyAISettings()
+        classifier.refreshAvailability()
     }
 
-    /// Called after the AI engine, key or model changed in Settings.
+    /// 设置里换了引擎时调用：把新配置交给引擎，并重跑一遍积压的等待项和猜测。
     func applyAISettings() {
+        ai.update(preferences.aiSettings)
+        classifier.retryPending()
+    }
+
+    /// 只把新配置交下去，不动分类队列（改模型名、接口地址时用）。
+    func updateAIModel() {
         ai.update(preferences.aiSettings)
         classifier.refreshAvailability()
     }

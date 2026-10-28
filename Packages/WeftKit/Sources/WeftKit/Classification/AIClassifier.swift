@@ -1,4 +1,3 @@
-import AppKit
 import Foundation
 import FoundationModels
 
@@ -40,7 +39,8 @@ public struct FoundationModelsClassifier: AIClassifying {
         case .available:
             return .available
         case .unavailable(.deviceNotEligible):
-            return .unavailable("这台 Mac 不支持 Apple 智能。")
+            // 未开放 Apple 智能的地区也会报这个值，所以别把话说成硬件不支持。
+            return .unavailable("这台 Mac 或所在地区不提供 Apple 智能。")
         case .unavailable(.appleIntelligenceNotEnabled):
             return .unavailable("系统设置中已关闭 Apple 智能。")
         case .unavailable(.modelNotReady):
@@ -51,7 +51,7 @@ public struct FoundationModelsClassifier: AIClassifying {
     }
 
     public func classify(_ context: ActivityContext, categories: [CategoryDefinition]) async throws -> AIClassification {
-        let candidates = categories.filter { !$0.isDoNotTrack && $0.key != CategoryDefinition.uncategorizedKey }
+        let candidates = ModelPrompts.candidates(categories)
         let keys = candidates.map(\.key)
 
         let root = DynamicGenerationSchema(
@@ -71,25 +71,8 @@ public struct FoundationModelsClassifier: AIClassifying {
         )
         let schema = try GenerationSchema(root: root, dependencies: [])
 
-        let categoryList = candidates.map { "- \($0.key)：\($0.hint)" }.joined(separator: "\n")
-        let session = LanguageModelSession(instructions: """
-            你在为个人时间追踪器判断一个人此刻在 Mac 上做什么。
-            只从下面的列表里选择一个分类 key：
-            \(categoryList)
-
-            按应用或网站本身的用途判断，不要被窗口标题里偶然出现的词带偏。
-            只有当它是一个用途不明的网页浏览器标签页时才用 "browsing"，原生应用绝不要用。\
-            遇到不认识的原生应用，从它的名称和 bundle identifier 推断用途。
-            """)
-
-        var prompt = context.domain == nil
-            ? "原生应用：\(context.appName)（bundle identifier \(context.bundleID)）"
-            : "\(context.appName) 中的网页标签页"
-        if context.domain == nil, let category = Self.appStoreCategory(bundleID: context.bundleID) {
-            prompt += "\nApp Store 分类：\(category)"
-        }
-        if let domain = context.domain { prompt += "\n网站：\(domain)" }
-        if let title = context.title { prompt += "\n窗口标题：\(title.prefix(200))" }
+        let session = LanguageModelSession(instructions: ModelPrompts.classifyInstructions(candidates))
+        let prompt = ModelPrompts.classifyPrompt(context)
 
         let response = try await session.respond(
             to: prompt, schema: schema, options: GenerationOptions(samplingMode: .greedy)
@@ -101,30 +84,12 @@ public struct FoundationModelsClassifier: AIClassifying {
     }
 
     public func describeActivity(_ facts: String, language: String) async throws -> String {
-        let session = LanguageModelSession(instructions: """
-            你在为一份个人工时记录写条目。给你一段电脑使用过程中的应用、网站和窗口标题，\
-            用一句简体中文（不超过 40 个字）说明这个人做了什么。覆盖其中最要紧的两三件事，\
-            点出标题里具体的项目、话题或页面，并说明是怎么做的（例如在终端里、在 GitHub 上）。\
-            不要提时长、百分比，也不要提到你自己。要写得像母语者自然会说的一句话，例如：
-            在终端里开发 weft 应用，在 GitHub 上查看 ActivityWatch 仓库，并调研了时间追踪工具的替代方案。
-            """)
+        let session = LanguageModelSession(instructions: ModelPrompts.describeInstructions(language: language))
         return try await session.respond(to: facts).content
     }
 
-    /// `public.app-category.developer-tools` → `developer tools`, from the app's Info.plist.
-    static func appStoreCategory(bundleID: String) -> String? {
-        guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
-              let type = Bundle(url: url)?.object(forInfoDictionaryKey: "LSApplicationCategoryType") as? String,
-              type.hasPrefix("public.app-category.") else { return nil }
-        return type.dropFirst("public.app-category.".count).replacingOccurrences(of: "-", with: " ")
-    }
-
     public func summarize(_ facts: String) async throws -> String {
-        let session = LanguageModelSession(instructions: """
-            你是一位有耐心的效率教练。根据某一天电脑使用的统计数据，用简体中文写一段简短回顾：\
-            先用两三句话说说这一天过得怎么样，再给出一个具体、可执行的明天建议。\
-            不要用标题，不要用列表。
-            """)
+        let session = LanguageModelSession(instructions: ModelPrompts.summarizeInstructions)
         return try await session.respond(to: facts).content
     }
 }

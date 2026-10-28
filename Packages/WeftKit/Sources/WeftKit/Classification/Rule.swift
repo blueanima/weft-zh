@@ -37,6 +37,9 @@ public struct Rule: Hashable, Sendable {
     public func matches(_ context: ActivityContext) -> Bool {
         switch field {
         case .bundleID:
+            // 内置的 app 规则说明的是「这个应用是干什么的」；到了浏览器标签页里，该由网站决定，
+            // 否则不认识的全被当成浏览网页，根本轮不到模型。用户自己给浏览器建的规则仍然管所有标签页。
+            guard source == .user || context.domain == nil else { return false }
             return context.bundleID.lowercased() == pattern
         case .domain:
             // `github.com` matches `github.com` and `gist.github.com`.

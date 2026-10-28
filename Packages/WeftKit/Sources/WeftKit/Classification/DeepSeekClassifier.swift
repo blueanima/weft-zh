@@ -100,30 +100,11 @@ public final class DeepSeekClassifier: AIClassifying, @unchecked Sendable {
     // MARK: Classification
 
     public func classify(_ context: ActivityContext, categories: [CategoryDefinition]) async throws -> AIClassification {
-        let candidates = categories.filter { !$0.isDoNotTrack && $0.key != CategoryDefinition.uncategorizedKey }
+        let candidates = ModelPrompts.candidates(categories)
         let keys = Set(candidates.map(\.key))
-        let categoryList = candidates.map { "- \($0.key)：\($0.hint)" }.joined(separator: "\n")
-
-        let system = """
-            你在为个人时间追踪器判断一个人此刻在 Mac 上做什么。
-            只从下面的列表里选择一个分类 key：
-            \(categoryList)
-
-            按应用或网站本身的用途判断，不要被窗口标题里偶然出现的词带偏。
-            只有当它是一个用途不明的网页浏览器标签页时才用 "browsing"，原生应用绝不要用。
-            遇到不认识的原生应用，从它的名称和 bundle identifier 推断用途。
-            只输出一个 JSON 对象，形如 {"category": "分类 key", "confidence": "high|medium|low"}，\
-            不要输出解释、Markdown 或代码块。
-            """
-
-        var prompt = context.domain == nil
-            ? "原生应用：\(context.appName)（bundle identifier \(context.bundleID)）"
-            : "\(context.appName) 中的网页标签页"
-        if context.domain == nil, let category = FoundationModelsClassifier.appStoreCategory(bundleID: context.bundleID) {
-            prompt += "\nApp Store 分类：\(category)"
-        }
-        if let domain = context.domain { prompt += "\n网站：\(domain)" }
-        if let title = context.title { prompt += "\n窗口标题：\(title.prefix(200))" }
+        // 与 Apple 端同一套提示词，只是多一句「只输出 JSON」。
+        let system = ModelPrompts.classifyInstructions(candidates) + "\n\n" + ModelPrompts.classifyReplyFormat
+        let prompt = ModelPrompts.classifyPrompt(context)
 
         let text = try await chat(system: system, user: prompt, json: true, maxTokens: 120, temperature: 0)
         return try Self.parseClassification(text, keys: keys)
@@ -148,22 +129,13 @@ public final class DeepSeekClassifier: AIClassifying, @unchecked Sendable {
     // MARK: Writing
 
     public func describeActivity(_ facts: String, language: String) async throws -> String {
-        let system = """
-            你在为一份个人工时记录写条目。给你一段电脑使用过程中的应用、网站和窗口标题，\
-            用一句简体中文（不超过 40 个字）说明这个人做了什么。覆盖其中最要紧的两三件事，\
-            点出标题里具体的项目、话题或页面，并说明是怎么做的（例如在终端里、在 GitHub 上）。\
-            不要提时长、百分比，也不要提到你自己。只输出这一句话。
-            """
+        let system = ModelPrompts.describeInstructions(language: language)
         let text = try await chat(system: system, user: facts, json: false, maxTokens: 200, temperature: 0.4)
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     public func summarize(_ facts: String) async throws -> String {
-        let system = """
-            你是一位有耐心的效率教练。根据某一天电脑使用的统计数据，用简体中文写一段简短回顾：\
-            先用两三句话说说这一天过得怎么样，再给出一个具体、可执行的明天建议。\
-            不要用标题，不要用列表。
-            """
+        let system = ModelPrompts.summarizeInstructions
         let text = try await chat(system: system, user: facts, json: false, maxTokens: 700, temperature: 0.6)
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }

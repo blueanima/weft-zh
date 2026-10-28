@@ -19,6 +19,7 @@ public final class ClassificationService {
     @ObservationIgnored private var cache: [String: AIClassification] = [:]
     @ObservationIgnored private var queue: [(key: String, context: ActivityContext)] = []
     @ObservationIgnored private var failedKeys: Set<String> = []
+    @ObservationIgnored private var guesses: [String: String] = [:]
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private var categoryIndex: [String: CategoryDefinition] = [:]
 
@@ -89,36 +90,52 @@ public final class ClassificationService {
         if let cached = cache[context.classificationKey] {
             return (cached.categoryKey, .ai)
         }
-        enqueue(context)
-        return (CategoryDefinition.uncategorizedKey, .pending)
+        if enqueue(context) {
+            return (CategoryDefinition.uncategorizedKey, .pending)
+        }
+        return (guess(context), .guess)
     }
 
     public func confidence(forKey key: String) -> AIConfidence? {
         cache[key]?.confidence
     }
 
+    /// 只在可用性真的变化时重跑一遍，否则每次采样都会把整张表翻一次。切引擎的场合
+    /// 由 `retryPending` 直接负责，不走这里。
     public func refreshAvailability() {
+        let previous = aiAvailability
         aiAvailability = ai.availability()
-        if aiAvailability == .available { retryPending() }
+        if aiAvailability != previous { retryPending() }
     }
 
-    /// Queue every app/site that is still waiting, e.g. after Apple Intelligence was enabled.
+    /// 问一遍所有还在等、或者只是被猜过的应用和网站。没有模型时，等待中的那些就地换成猜测。
     public func retryPending() {
+        aiAvailability = ai.availability()
         failedKeys.removeAll()
         let pending = ClassificationSource.pending.rawValue
-        let segments = (try? modelContext.fetch(FetchDescriptor<ActivitySegment>(predicate: #Predicate { $0.classificationSourceRaw == pending }))) ?? []
-        for segment in segments { enqueue(segment.context) }
+        let guessed = ClassificationSource.guess.rawValue
+        let segments = (try? modelContext.fetch(FetchDescriptor<ActivitySegment>(
+            predicate: #Predicate { $0.classificationSourceRaw == pending || $0.classificationSourceRaw == guessed }
+        ))) ?? []
+        for segment in segments where !enqueue(segment.context) && segment.classificationSource == .pending {
+            segment.categoryKey = self.guess(segment.context)
+            segment.classificationSource = .guess
+        }
+        try? modelContext.save()
     }
 
-    private func enqueue(_ context: ActivityContext) {
+    /// 排进模型队列；没有可用模型、或者模型已经在这个 key 上失败过时返回 false。
+    @discardableResult
+    private func enqueue(_ context: ActivityContext) -> Bool {
         let key = context.classificationKey
-        guard aiAvailability == .available, !failedKeys.contains(key), !queue.contains(where: { $0.key == key })
-        else { return }
+        guard aiAvailability == .available, !failedKeys.contains(key) else { return false }
+        guard !queue.contains(where: { $0.key == key }) else { return true }
         queue.append((key, context))
         queuedCount = queue.count
         if worker == nil {
             worker = Task { [weak self] in await self?.drain() }
         }
+        return true
     }
 
     private func drain() async {
@@ -128,11 +145,38 @@ public final class ClassificationService {
                 store(result, forKey: next.key)
             } catch {
                 failedKeys.insert(next.key)
+                fallBackToGuess(next.context)
             }
             queue.removeFirst()
             queuedCount = queue.count
         }
         worker = nil
+    }
+
+    /// 没有模型可用时的粗略分类，按 key 缓存，同一个应用或网站不重复推算。
+    private func guess(_ context: ActivityContext) -> String {
+        let key = context.classificationKey
+        if let cached = guesses[key] { return cached }
+        let appStoreCategory = context.domain == nil ? CategoryGuess.appStoreCategory(bundleID: context.bundleID) : nil
+        var category = CategoryGuess.category(for: context, appStoreCategory: appStoreCategory)
+        // 用户删掉的分类不该冒出来。
+        if categoryIndex[category] == nil { category = CategoryDefinition.uncategorizedKey }
+        guesses[key] = category
+        return category
+    }
+
+    /// 模型答不上来（超时、限流、Key 不对）时，把仍挂在这个 key 上等待的记录换成猜测。
+    private func fallBackToGuess(_ context: ActivityContext) {
+        let key = context.classificationKey
+        let pending = ClassificationSource.pending.rawValue
+        let segments = (try? modelContext.fetch(FetchDescriptor<ActivitySegment>(
+            predicate: #Predicate { $0.classificationKey == key && $0.classificationSourceRaw == pending }
+        ))) ?? []
+        for segment in segments {
+            segment.categoryKey = guess(context)
+            segment.classificationSource = .guess
+        }
+        try? modelContext.save()
     }
 
     private func store(_ result: AIClassification, forKey key: String) {
@@ -144,8 +188,11 @@ public final class ClassificationService {
             modelContext.insert(AIClassificationRecord(key: key, categoryKey: result.categoryKey, confidence: result.confidence))
         }
         let pending = ClassificationSource.pending.rawValue
+        let guessed = ClassificationSource.guess.rawValue
         let segments = (try? modelContext.fetch(FetchDescriptor<ActivitySegment>(
-            predicate: #Predicate { $0.classificationKey == key && $0.classificationSourceRaw == pending }
+            predicate: #Predicate {
+                $0.classificationKey == key && ($0.classificationSourceRaw == pending || $0.classificationSourceRaw == guessed)
+            }
         ))) ?? []
         for segment in segments {
             segment.categoryKey = result.categoryKey
